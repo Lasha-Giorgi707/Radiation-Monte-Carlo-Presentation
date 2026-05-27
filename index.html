@@ -564,9 +564,9 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
 
   <!-- GRAPH 6 -->
   <div class="chart-wrap">
-    <div class="chart-title">Graph 6 — Absorption Efficiency per Metre</div>
+    <div class="chart-title">Graph 6 — Half-Value Layer by Shielding Material</div>
     <div style="position:relative;height:300px;"><canvas id="absorptionEffChart"></canvas></div>
-    <p class="chart-note" style="font-style:italic;">Reinforced arch: >99.99% per metre. Tbilisi soil: 71.4% per metre. Air: near zero.</p>
+    <p class="chart-note" style="font-style:italic;">HVL = thickness that halves radiation. Lower = better. Arch geometry (45° avg) cuts HVL from 4.2 cm → 3.0 cm. Air HVL is 8,664 cm — shown capped.</p>
   </div>
 
   <h3>Civil Defence Significance</h3>
@@ -698,7 +698,7 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
 
   <!-- GRAPH 9 -->
   <div class="chart-wrap">
-    <div class="chart-title">Graph 9 — Arch Advantage Across Soil Depths</div>
+    <div class="chart-title">Graph 9 — Arch vs Flat: Survival Through Concrete Vault</div>
     <div style="position:relative;height:320px;"><canvas id="archDepthChart"></canvas></div>
     <p class="chart-note" style="font-style:italic;">At 5 m depth, arch reduces penetration by ~31% vs flat ceiling. Most impactful at 5–15 m.</p>
   </div>
@@ -957,33 +957,58 @@ const labelPlugin = {
   });
 })();
 
-// ── GRAPH 6: Absorption per metre ─────────────
+// ── GRAPH 6: Half-Value Layer comparison ─────
 (function(){
-  const aa=45*Math.PI/180;
+  // HVL = ln(2)/mu  — thickness (cm) that halves the radiation
+  // Lower HVL = better shielding (thinner wall needed)
   const items=[
-    { label:'Air',               val:(1-Math.exp(-MU.air*100))*100,                      color:'#aec7e8' },
-    { label:'Tbilisi Soil',      val:(1-Math.exp(-MU.soil*100))*100,                     color:'#c8a96a' },
-    { label:'Concrete',          val:(1-Math.exp(-MU.concrete*100))*100,                 color:'#7a7468' },
-    { label:'Heavy Reinforced',  val:(1-Math.exp(-MU.reinforced*100))*100,               color:'#3a3830' },
-    { label:'Arch (45° avg)',     val:(1-Math.exp(-MU.heavy*100/Math.cos(aa)))*100,       color:'#1f5f9f' }
+    { label:'Air',             hvl:Math.log(2)/MU.air,        color:'#aec7e8' },
+    { label:'Tbilisi Soil',   hvl:Math.log(2)/MU.soil,       color:'#c8a96a' },
+    { label:'Concrete',       hvl:Math.log(2)/MU.concrete,   color:'#7a7468' },
+    { label:'Heavy Reinf.',   hvl:Math.log(2)/MU.reinforced, color:'#3a3830' },
+    { label:'Arch (45° avg)', hvl:(Math.log(2)/MU.heavy)*Math.cos(45*Math.PI/180), color:'#1f5f9f' }
   ];
+  // Cap Air at 500 for display (actual is 8664 cm — off the chart intentionally)
+  const dispVals = items.map(d=>Math.min(d.hvl, 500));
+  const trueVals = items.map(d=>d.hvl);
   new Chart(document.getElementById('absorptionEffChart'),{
     type:'bar',
     data:{ labels:items.map(d=>d.label),
-      datasets:[{ data:items.map(d=>d.val), backgroundColor:items.map(d=>d.color+'cc'),
+      datasets:[{ data:dispVals, backgroundColor:items.map(d=>d.color+'cc'),
         borderWidth:0, borderRadius:4, barPercentage:0.55 }]
     },
     options:{ responsive:true, maintainAspectRatio:false,
       layout:{ padding:{ top:28 } },
       scales:{
         x:{ ...xBase(''), grid:{display:false} },
-        y:{ ...yBase('Absorbed per metre (%)'), max:100, suggestedMin:0 }
+        y:{ ...yBase('Half-Value Layer (cm)  —  lower = better shielding'), suggestedMin:0, suggestedMax:520 }
       },
-      plugins:{ legend:{display:false},
-        tooltip:{ callbacks:{ label:c=>`${c.parsed.y.toFixed(2)}% per metre` } }
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{
+          label: c => {
+            const v = trueVals[c.dataIndex];
+            return v > 500 ? `HVL: ${v.toFixed(0)} cm  (off chart — near-transparent)` : `HVL: ${v.toFixed(1)} cm`;
+          }
+        }}
       }
     },
-    plugins:[labelPlugin]
+    plugins:[{
+      id:'hvlLabels',
+      afterDatasetsDraw(chart){
+        const {ctx} = chart;
+        chart.getDatasetMeta(0).data.forEach((el,i)=>{
+          const v = trueVals[i];
+          const txt = v > 500 ? '8,664 cm ↑' : v.toFixed(1)+' cm';
+          ctx.save();
+          ctx.font = `500 10px ${FONT}`;
+          ctx.fillStyle = INK;
+          ctx.textAlign = 'center';
+          ctx.fillText(txt, el.x, el.y - 7);
+          ctx.restore();
+        });
+      }
+    }]
   });
 })();
 
@@ -1047,29 +1072,38 @@ const labelPlugin = {
   });
 })();
 
-// ── GRAPH 9: Arch vs Flat across depths ──────
+// ── GRAPH 9: Arch vs Flat — concrete thickness ─
 (function(){
-  const depths=[2,4,6,8,10,12,15,20,25];
+  // Shows survival rate through reinforced concrete vault of varying thickness
+  // Flat = perpendicular (θ=0°), Arch = random θ~Uniform(0°,60°) → avg mult 1.317
+  // No soil — isolates the arch geometry effect cleanly
   const archMult=1.317;
-  const flat=depths.map(d=>Math.exp(-MU.soil*d*100)*Math.exp(-MU.heavy*3*100)*100);
-  const arch=depths.map(d=>Math.exp(-MU.soil*d*100)*Math.exp(-MU.heavy*3*archMult*100)*100);
+  const thick=[5,8,10,12,15,18,20,25,30];
+  const flat=thick.map(t=>Math.exp(-MU.heavy*t)*100);
+  const arch=thick.map(t=>Math.exp(-MU.heavy*t*archMult)*100);
   new Chart(document.getElementById('archDepthChart'),{
     type:'line',
     data:{
-      labels:depths.map(d=>d+' m'),
+      labels:thick.map(t=>t+' cm'),
       datasets:[
-        { label:'Flat ceiling', data:flat, borderColor:'#7a7468', backgroundColor:'rgba(120,116,104,0.08)', borderWidth:2.5, pointRadius:5, pointBackgroundColor:'#7a7468', fill:true, tension:0.35 },
-        { label:'Arch vault',   data:arch, borderColor:'#1f5f9f', backgroundColor:'rgba(31,95,159,0.08)',   borderWidth:2.5, pointRadius:5, pointBackgroundColor:'#1f5f9f', fill:true, tension:0.35 }
+        { label:'Flat ceiling (θ=0°)',      data:flat, borderColor:'#7a7468',
+          backgroundColor:'rgba(120,116,104,0.10)', borderWidth:2.5,
+          pointRadius:5, pointBackgroundColor:'#fff', pointBorderColor:'#7a7468',
+          pointBorderWidth:2, fill:true, tension:0.3 },
+        { label:'Arch vault (avg θ=45°)', data:arch, borderColor:'#1f5f9f',
+          backgroundColor:'rgba(31,95,159,0.10)',   borderWidth:2.5,
+          pointRadius:5, pointBackgroundColor:'#fff', pointBorderColor:'#1f5f9f',
+          pointBorderWidth:2, fill:true, tension:0.3 }
       ]
     },
     options:{ responsive:true, maintainAspectRatio:false,
       scales:{
-        x:{ ...xBase('Soil depth') },
-        y:{ ...yLog('Transmitted (%)', 1e-15, 100) }
+        x:{ ...xBase('Concrete vault thickness') },
+        y:{ ...yBase('Radiation transmitted (%)'), suggestedMin:0, suggestedMax:50 }
       },
       plugins:{
         legend:{ position:'top', labels:{ boxWidth:12, padding:20, color:INK, font:{family:FONT,size:11} } },
-        tooltip:{ callbacks:{ label:c=>`${c.dataset.label}: ${c.parsed.y.toExponential(2)}%` } }
+        tooltip:{ callbacks:{ label:c=>`${c.dataset.label}: ${c.parsed.y.toFixed(3)}%` } }
       }
     }
   });
