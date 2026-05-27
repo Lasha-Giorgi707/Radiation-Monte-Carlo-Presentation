@@ -89,7 +89,7 @@
   .diagram-title::after { content:''; flex:1; height:1px; background:var(--border); }
   svg.diagram { width:100%; height:auto; display:block; }
 
-  .chart-wrap { margin:32px 0; background:white; border:1px solid var(--border); padding:32px; }
+  .chart-wrap { margin:32px 0; background:#fdfcf9; border:1px solid var(--border); padding:28px 32px 20px; }
   .chart-title { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-muted); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
   .chart-title::after { content:''; flex:1; height:1px; background:var(--border); }
   .chart-note { font-size:12px; color:var(--ink-muted); margin-top:12px; font-family:'IBM Plex Mono',monospace; }
@@ -324,9 +324,9 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
 
   <!-- GRAPH 1 -->
   <div class="chart-wrap">
-    <div class="chart-title">Graph 1 — Radiation Attenuation Curves by Material (Log Scale, 1–40 cm)</div>
+    <div class="chart-title">Graph 1 — Attenuation Curves by Material</div>
     <div style="position:relative;height:360px;"><canvas id="attenuationChart"></canvas></div>
-    <p class="chart-note">Monte Carlo simulation: N=100,000 particles per thickness step. Y-axis logarithmic. Curves reproduce Beer-Lambert law — simulation validated against analytical solution.</p>
+    <p class="chart-note" style="font-style:italic;">N=100,000 particles. Logarithmic Y-axis. Curves match Beer-Lambert analytical solution.</p>
   </div>
 
   <div class="diagram-wrap">
@@ -371,9 +371,9 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
 
   <!-- GRAPH 2 -->
   <div class="chart-wrap">
-    <div class="chart-title">Graph 2 — Particle Absorption Depth Distribution in Concrete vs Lead</div>
+    <div class="chart-title">Graph 2 — Absorption Depth Distribution</div>
     <div style="position:relative;height:320px;"><canvas id="absorptionHistChart"></canvas></div>
-    <p class="chart-note">Probability density of photon absorption at each depth (0–40 cm). Lead absorbs nearly all particles within the first 2 cm. Concrete spreads absorption across a much wider range — relevant when thick walls are unavailable.</p>
+    <p class="chart-note" style="font-style:italic;">Lead absorbs nearly everything within 2 cm. Concrete distributes absorption over a much wider range.</p>
   </div>
 </div>
 
@@ -447,9 +447,9 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
 
   <!-- GRAPH 3 -->
   <div class="chart-wrap">
-    <div class="chart-title">Graph 3 — Effect of Incidence Angle on Survival Rate (20 cm Concrete)</div>
+    <div class="chart-title">Graph 3 — Incidence Angle vs Survival Rate</div>
     <div style="position:relative;height:280px;"><canvas id="angleChart"></canvas></div>
-    <p class="chart-note">Survival rate drops by over three orders of magnitude as angle increases from 0° to 75°. At 60°, the effective wall doubles; at 75°, survival is near zero. Y-axis logarithmic.</p>
+    <p class="chart-note" style="font-style:italic;">At 60° the effective wall thickness doubles. Each bar value shows survival % at that angle.</p>
   </div>
 
   <h3>Architectural Implication</h3>
@@ -473,9 +473,9 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
 
   <!-- GRAPH 4 -->
   <div class="chart-wrap">
-    <div class="chart-title">Graph 4 — Monolithic vs Sandwich Wall: Transmitted Radiation (%)</div>
+    <div class="chart-title">Graph 4 — Monolithic vs Sandwich Wall</div>
     <div style="position:relative;height:260px;"><canvas id="sandwichChart"></canvas></div>
-    <p class="chart-note">Both walls use 30 cm of concrete. The 10 cm air gap (μ=0.00008) contributes negligible attenuation. The sandwich transmits marginally more radiation because the gap replaces what could have been additional material.</p>
+    <p class="chart-note" style="font-style:italic;">Equal concrete volume. The air gap (μ=0.00008) contributes negligible attenuation.</p>
   </div>
 
   <div class="pullquote"><p>"The sandwich wall is architecturally elegant and thermally efficient. As a gamma shield, it is simply 30 cm of concrete with a gap. The physics is unimpressed by the gap."</p></div>
@@ -557,16 +557,16 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
 
   <!-- GRAPH 5 -->
   <div class="chart-wrap">
-    <div class="chart-title">Graph 5 — Tbilisi Metro Stations: Comparative Radiation Penetration</div>
+    <div class="chart-title">Graph 5 — Metro Station Shielding Comparison</div>
     <div style="position:relative;height:340px;"><canvas id="metroChart"></canvas></div>
-    <p class="chart-note">Open station (Didube) transmits ~750× more radiation than shallow underground stations. Deep stations achieve complete shielding — penetration is below any measurable threshold. X-axis: logarithmic scale to show all values simultaneously.</p>
+    <p class="chart-note" style="font-style:italic;">Deep stations: complete shielding. Open station transmits ~750× more than shallow stations.</p>
   </div>
 
   <!-- GRAPH 6 -->
   <div class="chart-wrap">
-    <div class="chart-title">Graph 6 — Per-Metre Radiation Absorption Efficiency by Shielding Medium</div>
+    <div class="chart-title">Graph 6 — Absorption Efficiency per Metre</div>
     <div style="position:relative;height:300px;"><canvas id="absorptionEffChart"></canvas></div>
-    <p class="chart-note">Percentage of incoming radiation absorbed per metre of each medium. Reinforced concrete arch (with arch geometry) achieves 99.99%+ per metre. Tbilisi soil absorbs 71.4% per metre — far more than typical light topsoil. Air is effectively transparent.</p>
+    <p class="chart-note" style="font-style:italic;">Reinforced arch: >99.99% per metre. Tbilisi soil: 71.4% per metre. Air: near zero.</p>
   </div>
 
   <h3>Civil Defence Significance</h3>
@@ -624,9 +624,9 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
 
   <!-- GRAPH 7 -->
   <div class="chart-wrap">
-    <div class="chart-title">Graph 7 — Tbilisi Buildings: Radiation Penetration by Construction Type</div>
+    <div class="chart-title">Graph 7 — Building Penetration by Type</div>
     <div style="position:relative;height:300px;"><canvas id="buildingChart"></canvas></div>
-    <p class="chart-note">N=100,000 photons, 1.25 MeV gamma, Beer-Lambert sequential layer model. Lower = better shielding. Bank of Georgia's brutalist concrete is 2,100× more effective than modern gazbetoni per unit thickness. Y-axis logarithmic.</p>
+    <p class="chart-note" style="font-style:italic;">Lower = better. Bank of Georgia is 2,100× more effective per cm than modern gazbetoni.</p>
   </div>
 
   <h3>Practical Emergency Guidance by Building Type</h3>
@@ -688,9 +688,9 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
 
   <!-- GRAPH 8 -->
   <div class="chart-wrap">
-    <div class="chart-title">Graph 8 — Flat Ceiling vs Arch Geometry: Liberty Square (47 m depth)</div>
+    <div class="chart-title">Graph 8 — Flat Ceiling vs Arch Geometry</div>
     <div style="position:relative;height:260px;"><canvas id="archChart"></canvas></div>
-    <p class="chart-note">Both configurations use identical concrete volume. At 47 m depth, both results are astronomically small — both provide complete shielding. The arch advantage becomes operationally significant at shallower depths (10–20 m).</p>
+    <p class="chart-note" style="font-style:italic;">Shown at 5 m depth where difference is visible. At 47 m both reach complete shielding.</p>
   </div>
 
   <h3>Why This Matters at Shallower Depths</h3>
@@ -698,9 +698,9 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
 
   <!-- GRAPH 9 -->
   <div class="chart-wrap">
-    <div class="chart-title">Graph 9 — Arch vs Flat Ceiling: Shielding Advantage Across Soil Depths (3 m concrete)</div>
+    <div class="chart-title">Graph 9 — Arch Advantage Across Soil Depths</div>
     <div style="position:relative;height:320px;"><canvas id="archDepthChart"></canvas></div>
-    <p class="chart-note">At 5 m soil depth, the arch geometry reduces transmitted radiation by ~31% vs a flat ceiling of identical concrete volume. At 20+ m, both approach zero and the difference becomes academic. The arch bonus is most impactful at intermediate depths — exactly the range of Tbilisi's surface-adjacent stations.</p>
+    <p class="chart-note" style="font-style:italic;">At 5 m depth, arch reduces penetration by ~31% vs flat ceiling. Most impactful at 5–15 m.</p>
   </div>
 
   <div class="pullquote"><p>"At 5 metres of soil cover, the curved arch vault reduces gamma penetration by nearly a third compared to a flat roof of the same concrete volume. Geometry is free shielding."</p></div>
@@ -741,64 +741,112 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
 </footer>
 
 <script>
-// ─────────────────────────────────────────────
-// Beer-Lambert analytical engine
-// ─────────────────────────────────────────────
 const MU = {
-  air: 0.00008, water: 0.063, wood: 0.047, plastic: 0.060,
-  concrete: 0.141, lead: 0.672, soil: 0.125,
-  heavy: 0.165, reinforced: 0.180, thinPanel: 0.145,
-  gazbetoni: 0.075, glass: 0.110
+  air:0.00008, water:0.063, wood:0.047, plastic:0.060,
+  concrete:0.141, lead:0.672, soil:0.125,
+  heavy:0.165, reinforced:0.180, thinPanel:0.145,
+  gazbetoni:0.075, glass:0.110
 };
+function bl(mu,x){ return Math.exp(-mu*x)*100; }
 
-function bl(mu, x_cm) { return Math.exp(-mu * x_cm) * 100; }
+// ── Shared style tokens ───────────────────────
+const FONT   = "'IBM Plex Mono', monospace";
+const MUTED  = '#9a9288';
+const INK    = '#2a2820';
+const GRID   = 'rgba(0,0,0,0.05)';
+const TICK   = { color: MUTED, font:{ family:FONT, size:11 } };
 
-Chart.defaults.font.family = "'IBM Plex Mono', monospace";
-Chart.defaults.font.size = 11;
-Chart.defaults.color = '#3a3830';
+Chart.defaults.font.family = FONT;
+Chart.defaults.font.size   = 11;
+Chart.defaults.color       = MUTED;
+
+// shared axis base objects
+function xBase(label){ return { title:{display:!!label,text:label,color:MUTED,font:{family:FONT,size:10}}, grid:{color:GRID}, ticks:TICK }; }
+function yBase(label){ return { title:{display:!!label,text:label,color:MUTED,font:{family:FONT,size:10}}, grid:{color:GRID}, ticks:TICK }; }
+function yLog(label,min,max){
+  return { type:'logarithmic', title:{display:!!label,text:label,color:MUTED,font:{family:FONT,size:10}},
+    min, max, grid:{color:GRID}, ticks:{...TICK, callback:v=>{ const e=Math.log10(v); return Number.isInteger(e)?`10^${e}`:undefined; }} };
+}
+
+// value-label plugin (draws text above/beside bars)
+const labelPlugin = {
+  id:'labelPlugin',
+  afterDatasetsDraw(chart){
+    const {ctx} = chart;
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta=chart.getDatasetMeta(di);
+      meta.data.forEach((el,i)=>{
+        const v = ds.data[i];
+        if(v==null) return;
+        ctx.save();
+        ctx.font=`500 10px ${FONT}`;
+        ctx.fillStyle=INK;
+        const isHoriz = chart.options.indexAxis==='y';
+        if(isHoriz){
+          const x=el.x+6, y=el.y+4;
+          let txt = v===0?'≈ 0':(v<0.0001?v.toExponential(1)+'%':v.toFixed(3)+'%');
+          ctx.fillText(txt,x,y);
+        } else {
+          const x=el.x, y=el.y-6;
+          let txt = v===0?'≈ 0':(v<0.001?v.toExponential(1)+'%':v.toFixed(2)+'%');
+          ctx.textAlign='center';
+          ctx.fillText(txt,x,y);
+        }
+        ctx.restore();
+      });
+    });
+  }
+};
 
 // ── GRAPH 1: Attenuation curves ──────────────
 (function(){
-  const t = Array.from({length:40},(_,i)=>i+1);
-  new Chart(document.getElementById('attenuationChart'), {
+  const t=Array.from({length:40},(_,i)=>i+1);
+  new Chart(document.getElementById('attenuationChart'),{
     type:'line',
     data:{
       labels:t,
       datasets:[
-        {label:'Water (μ=0.063)',data:t.map(x=>bl(MU.water,x)),borderColor:'#4a90c8',backgroundColor:'rgba(74,144,200,0.06)',borderWidth:2,pointRadius:0,tension:0.3},
-        {label:'Concrete (μ=0.141)',data:t.map(x=>bl(MU.concrete,x)),borderColor:'#888780',backgroundColor:'rgba(136,135,128,0.06)',borderWidth:2,pointRadius:0,tension:0.3},
-        {label:'Lead (μ=0.672)',data:t.map(x=>bl(MU.lead,x)),borderColor:'#8b1a1a',backgroundColor:'rgba(139,26,26,0.06)',borderWidth:2,pointRadius:0,tension:0.3}
+        { label:'Water',  data:t.map(x=>bl(MU.water,x)),   borderColor:'#4a90c8', backgroundColor:'rgba(74,144,200,0.07)',  borderWidth:2.5, pointRadius:0, fill:true, tension:0.4 },
+        { label:'Concrete',data:t.map(x=>bl(MU.concrete,x)),borderColor:'#7a7468',backgroundColor:'rgba(120,116,104,0.07)', borderWidth:2.5, pointRadius:0, fill:true, tension:0.4 },
+        { label:'Lead',   data:t.map(x=>bl(MU.lead,x)),    borderColor:'#8b1a1a', backgroundColor:'rgba(139,26,26,0.07)',   borderWidth:2.5, pointRadius:0, fill:true, tension:0.4 }
       ]
     },
-    options:{responsive:true,maintainAspectRatio:false,
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ right:16 } },
       scales:{
-        x:{title:{display:true,text:'Barrier thickness (cm)',color:'#7a7468'},grid:{color:'rgba(0,0,0,0.06)'}},
-        y:{type:'logarithmic',title:{display:true,text:'Surviving particles (%)',color:'#7a7468'},min:0.0001,max:100,grid:{color:'rgba(0,0,0,0.06)'}}
+        x:{ ...xBase('Thickness (cm)'), ticks:{...TICK, maxTicksLimit:10} },
+        y:{ ...yLog('Survival (%)', 0.0001, 100) }
       },
-      plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toFixed(4)}%`}}}
+      plugins:{
+        legend:{ position:'top', labels:{ boxWidth:12, padding:20, color:INK, font:{family:FONT,size:11} } },
+        tooltip:{ callbacks:{ label:c=>`${c.dataset.label}: ${c.parsed.y.toFixed(3)}%` } }
+      }
     }
   });
 })();
 
-// ── GRAPH 2: Absorption histogram ────────────
+// ── GRAPH 2: Absorption PDF ───────────────────
 (function(){
-  const depths = Array.from({length:40},(_,i)=>i+1);
-  function pdf(mu, x){ return x===1 ? (1-Math.exp(-mu))*100 : (Math.exp(-mu*(x-1))-Math.exp(-mu*x))*100; }
-  new Chart(document.getElementById('absorptionHistChart'), {
+  const d=Array.from({length:40},(_,i)=>i+1);
+  function pdf(mu,x){ return x===1?(1-Math.exp(-mu))*100:(Math.exp(-mu*(x-1))-Math.exp(-mu*x))*100; }
+  new Chart(document.getElementById('absorptionHistChart'),{
     type:'bar',
     data:{
-      labels:depths,
+      labels:d,
       datasets:[
-        {label:'Concrete',data:depths.map(d=>pdf(MU.concrete,d)),backgroundColor:'rgba(136,135,128,0.6)',borderColor:'#888780',borderWidth:1},
-        {label:'Lead',data:depths.map(d=>pdf(MU.lead,d)),backgroundColor:'rgba(139,26,26,0.6)',borderColor:'#8b1a1a',borderWidth:1}
+        { label:'Concrete', data:d.map(x=>pdf(MU.concrete,x)), backgroundColor:'rgba(120,116,104,0.65)', borderColor:'#7a7468', borderWidth:0, borderRadius:2 },
+        { label:'Lead',     data:d.map(x=>pdf(MU.lead,x)),     backgroundColor:'rgba(139,26,26,0.65)',   borderColor:'#8b1a1a', borderWidth:0, borderRadius:2 }
       ]
     },
-    options:{responsive:true,maintainAspectRatio:false,
+    options:{ responsive:true, maintainAspectRatio:false,
       scales:{
-        x:{title:{display:true,text:'Absorption depth (cm)',color:'#7a7468'},grid:{color:'rgba(0,0,0,0.06)'}},
-        y:{title:{display:true,text:'Absorption probability (%)',color:'#7a7468'},grid:{color:'rgba(0,0,0,0.06)'}}
+        x:{ ...xBase('Depth (cm)'), ticks:{...TICK, maxTicksLimit:10} },
+        y:{ ...yBase('Absorption probability (%)') }
       },
-      plugins:{legend:{position:'top'}}
+      plugins:{
+        legend:{ position:'top', labels:{ boxWidth:12, padding:20, color:INK, font:{family:FONT,size:11} } },
+        tooltip:{ callbacks:{ label:c=>`${c.dataset.label} @ ${c.label} cm: ${c.parsed.y.toFixed(3)}%` } }
+      }
     }
   });
 })();
@@ -806,131 +854,164 @@ Chart.defaults.color = '#3a3830';
 // ── GRAPH 3: Angular incidence ────────────────
 (function(){
   const angles=[0,15,30,45,60,75];
-  const survival=angles.map(a=>{const r=a*Math.PI/180;return bl(MU.concrete,20/Math.cos(r));});
+  const vals=angles.map(a=>bl(MU.concrete,20/Math.cos(a*Math.PI/180)));
+  const palette=['#5ba3d9','#7ab8e0','#9dcde8','#d4924a','#c45050','#8b1a1a'];
   new Chart(document.getElementById('angleChart'),{
     type:'bar',
     data:{
       labels:angles.map(a=>a+'°'),
-      datasets:[{label:'Survival rate (%)',data:survival,
-        backgroundColor:['#4a90c8','#6aa8d8','#8fc4e4','#b87333','#c44040','#8b1a1a'],
-        borderColor:['#2a6098','#4a88b8','#6fa4c4','#987010','#a42020','#6b0a0a'],borderWidth:1}]
+      datasets:[{ data:vals, backgroundColor:palette, borderWidth:0, borderRadius:4, barPercentage:0.6 }]
     },
-    options:{responsive:true,maintainAspectRatio:false,
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:24 } },
       scales:{
-        x:{title:{display:true,text:'Angle of incidence',color:'#7a7468'},grid:{display:false}},
-        y:{type:'logarithmic',title:{display:true,text:'Survival rate (%)',color:'#7a7468'},min:0.001,max:100,grid:{color:'rgba(0,0,0,0.06)'}}
+        x:{ ...xBase('Angle of incidence'), grid:{display:false} },
+        y:{ ...yLog('Survival (%)', 0.0001, 100) }
       },
-      plugins:{legend:{display:false},
-        tooltip:{callbacks:{label:c=>{const a=angles[c.dataIndex];const eff=(20/Math.cos(a*Math.PI/180)).toFixed(1);return[`Survival: ${c.parsed.y.toFixed(4)}%`,`Effective thickness: ${eff} cm`];}}}}
-    }
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:c=>`${vals[c.dataIndex].toFixed(4)}%  |  eff. thickness: ${(20/Math.cos(angles[c.dataIndex]*Math.PI/180)).toFixed(1)} cm` } }
+      }
+    },
+    plugins:[labelPlugin]
   });
 })();
 
 // ── GRAPH 4: Sandwich vs Solid ────────────────
 (function(){
-  const solid=bl(MU.concrete,30);
-  const sandwich=Math.exp(-MU.concrete*15)*Math.exp(-MU.air*10)*Math.exp(-MU.concrete*15)*100;
+  const solid    = bl(MU.concrete,30);
+  const sandwich = Math.exp(-MU.concrete*15)*Math.exp(-MU.air*10)*Math.exp(-MU.concrete*15)*100;
   new Chart(document.getElementById('sandwichChart'),{
     type:'bar',
     data:{
-      labels:['Monolithic Concrete (30 cm solid)','Sandwich Wall (15 cm + 10 cm air + 15 cm)'],
-      datasets:[{label:'Transmitted radiation (%)',data:[solid,sandwich],
-        backgroundColor:['rgba(136,135,128,0.75)','rgba(44,160,44,0.75)'],
-        borderColor:['#888780','#2ca02c'],borderWidth:2}]
+      labels:['Monolithic\n30 cm concrete','Sandwich\n15 + air + 15 cm'],
+      datasets:[{ data:[solid,sandwich],
+        backgroundColor:['rgba(120,116,104,0.75)','rgba(44,160,44,0.75)'],
+        borderWidth:0, borderRadius:4, barPercentage:0.45 }]
     },
-    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:28 } },
       scales:{
-        x:{title:{display:true,text:'Transmitted radiation (%)',color:'#7a7468'},grid:{color:'rgba(0,0,0,0.06)'}},
-        y:{grid:{display:false}}
+        x:{ ...xBase(''), grid:{display:false} },
+        y:{ ...yBase('Transmitted (%)'), suggestedMax: solid * 1.3 }
       },
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`Transmission: ${c.parsed.x.toFixed(6)}%`}}}
-    }
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:c=>`${c.parsed.y.toFixed(5)}%` } }
+      }
+    },
+    plugins:[labelPlugin]
   });
 })();
 
 // ── GRAPH 5: Metro stations ───────────────────
 (function(){
-  // arch multiplier: (1/(pi/3)) * integral_0^(pi/3) 1/cos(t) dt = (3/pi)*ln(sec(pi/3)+tan(pi/3)) ≈ 1.317
   const archMult=1.317;
   function metro(soilM,concM,arch){
-    const s=Math.exp(-MU.soil*soilM*100);
-    const c=Math.exp(-MU.heavy*(arch?concM*archMult:concM)*100);
-    return s*c*100;
+    return Math.exp(-MU.soil*soilM*100)*Math.exp(-MU.heavy*(arch?concM*archMult:concM)*100)*100;
   }
   const stations=[
-    {name:'Rustaveli / Liberty Sq (45m)',soil:45,conc:3,arch:true},
-    {name:'Station Sq / Marjanishvili (35m)',soil:35,conc:3,arch:true},
-    {name:'Tech Univ / Medical (30m)',soil:30,conc:3,arch:true},
-    {name:'Avlabari / Isani / Samgori (12m)',soil:12,conc:2,arch:true},
-    {name:'Akhmeteli / Varketili / Vazha (10m)',soil:10,conc:2,arch:true},
-    {name:'Didube / Gotsiridze (open, 0m)',soil:0,conc:0.5,arch:false}
+    { label:'Rustaveli (45m)',          soil:45, conc:3,   arch:true  },
+    { label:'Marjanishvili (35m)',       soil:35, conc:3,   arch:true  },
+    { label:'Tech University (30m)',     soil:30, conc:3,   arch:true  },
+    { label:'Avlabari / Samgori (12m)', soil:12, conc:2,   arch:true  },
+    { label:'Akhmeteli / Vazha (10m)',  soil:10, conc:2,   arch:true  },
+    { label:'Didube (open, 0m)',         soil:0,  conc:0.5, arch:false }
   ];
   const vals=stations.map(s=>metro(s.soil,s.conc,s.arch));
-  const colors=['#1f5f9f','#1f5f9f','#1f5f9f','#c87020','#c87020','#8b1a1a'];
+  const clamp=vals.map(v=>Math.max(v,1e-28));
+  const colors=['#1f5f9f','#2a72b8','#3585cc','#c87020','#d98830','#8b1a1a'];
   new Chart(document.getElementById('metroChart'),{
     type:'bar',
-    data:{labels:stations.map(s=>s.name),
-      datasets:[{label:'Gamma penetration (%)',data:vals,backgroundColor:colors.map(c=>c+'cc'),borderColor:colors,borderWidth:1.5}]
+    data:{ labels:stations.map(s=>s.label),
+      datasets:[{ data:clamp, backgroundColor:colors.map(c=>c+'dd'), borderColor:colors, borderWidth:0, borderRadius:3 }]
     },
-    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      layout:{ padding:{ right:80 } },
       scales:{
-        x:{type:'logarithmic',title:{display:true,text:'Transmitted radiation (%) — log scale',color:'#7a7468'},min:1e-25,max:10,grid:{color:'rgba(0,0,0,0.06)'}},
-        y:{grid:{display:false},ticks:{font:{size:10}}}
+        x:{ type:'logarithmic', min:1e-28, max:10,
+          title:{display:true,text:'Penetration (log scale)',color:MUTED,font:{family:FONT,size:10}},
+          grid:{color:GRID}, ticks:{...TICK, callback:v=>{ const e=Math.log10(v); return Number.isInteger(e)?`10^${e}`:undefined; }}
+        },
+        y:{ grid:{display:false}, ticks:{...TICK, font:{family:FONT,size:11}} }
       },
-      plugins:{legend:{display:false},
-        tooltip:{callbacks:{label:c=>{const v=c.parsed.x;return v<1e-20?'Penetration: effectively 0 (complete shielding)':`Penetration: ${v.toExponential(3)}%`;}}}}
-    }
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c=>{ const v=vals[c.dataIndex]; return v<1e-20?'Complete shielding (≈ 0)':`${v.toExponential(2)}%`; } } }
+      }
+    },
+    plugins:[{
+      id:'metroLabels',
+      afterDatasetsDraw(chart){
+        const {ctx}=chart;
+        chart.getDatasetMeta(0).data.forEach((el,i)=>{
+          const v=vals[i];
+          const txt = v<1e-20?'complete shielding':(v<0.001?v.toExponential(1)+'%':v.toFixed(3)+'%');
+          ctx.save();
+          ctx.font=`500 10px ${FONT}`;
+          ctx.fillStyle=INK;
+          ctx.fillText(txt, el.x+8, el.y+4);
+          ctx.restore();
+        });
+      }
+    }]
   });
 })();
 
 // ── GRAPH 6: Absorption per metre ─────────────
 (function(){
-  const archAngle=45*Math.PI/180;
-  const data=[
-    {name:'Air (open station)',val:(1-Math.exp(-MU.air*100))*100},
-    {name:'Tbilisi Soil (alluvial)',val:(1-Math.exp(-MU.soil*100))*100},
-    {name:'Standard Concrete',val:(1-Math.exp(-MU.concrete*100))*100},
-    {name:'Heavy Reinforced Concrete',val:(1-Math.exp(-MU.reinforced*100))*100},
-    {name:'Arch (45° avg incidence)',val:(1-Math.exp(-MU.heavy*100/Math.cos(archAngle)))*100}
+  const aa=45*Math.PI/180;
+  const items=[
+    { label:'Air',               val:(1-Math.exp(-MU.air*100))*100,                      color:'#aec7e8' },
+    { label:'Tbilisi Soil',      val:(1-Math.exp(-MU.soil*100))*100,                     color:'#c8a96a' },
+    { label:'Concrete',          val:(1-Math.exp(-MU.concrete*100))*100,                 color:'#7a7468' },
+    { label:'Heavy Reinforced',  val:(1-Math.exp(-MU.reinforced*100))*100,               color:'#3a3830' },
+    { label:'Arch (45° avg)',     val:(1-Math.exp(-MU.heavy*100/Math.cos(aa)))*100,       color:'#1f5f9f' }
   ];
   new Chart(document.getElementById('absorptionEffChart'),{
     type:'bar',
-    data:{labels:data.map(d=>d.name),
-      datasets:[{label:'Absorption per metre (%)',data:data.map(d=>d.val),
-        backgroundColor:['#aec7e8cc','#c8a96acc','#888780cc','#4a4a48cc','#1f5f9fcc'],
-        borderColor:['#8ea7c8','#a88944','#686860','#2a2a28','#0f3f7f'],borderWidth:1.5}]
+    data:{ labels:items.map(d=>d.label),
+      datasets:[{ data:items.map(d=>d.val), backgroundColor:items.map(d=>d.color+'cc'),
+        borderWidth:0, borderRadius:4, barPercentage:0.55 }]
     },
-    options:{responsive:true,maintainAspectRatio:false,
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:28 } },
       scales:{
-        x:{grid:{display:false},ticks:{font:{size:10}}},
-        y:{title:{display:true,text:'Radiation absorbed per metre (%)',color:'#7a7468'},max:100,grid:{color:'rgba(0,0,0,0.06)'}}
+        x:{ ...xBase(''), grid:{display:false} },
+        y:{ ...yBase('Absorbed per metre (%)'), max:100, suggestedMin:0 }
       },
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y.toFixed(4)}% absorbed per metre`}}}
-    }
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c=>`${c.parsed.y.toFixed(2)}% per metre` } }
+      }
+    },
+    plugins:[labelPlugin]
   });
 })();
 
 // ── GRAPH 7: Building penetration ────────────
 (function(){
-  const bog=bl(MU.reinforced,60);
-  const axis=Math.exp(-MU.glass*3)*Math.exp(-MU.air*50)*Math.exp(-MU.heavy*30)*100;
-  const khru=bl(MU.thinPanel,20);
-  const modern=bl(MU.gazbetoni,30);
+  const items=[
+    { label:'Bank of Georgia\n(60 cm reinforced)',       val: bl(MU.reinforced,60),                                                          color:'#2a6b2a' },
+    { label:'Axis Towers\n(glass facade + core)',        val: Math.exp(-MU.glass*3)*Math.exp(-MU.air*50)*Math.exp(-MU.heavy*30)*100,         color:'#1f5f9f' },
+    { label:'Khrushchyovka\n(20 cm panel)',              val: bl(MU.thinPanel,20),                                                           color:'#c87020' },
+    { label:'Gazbetoni Block\n(30 cm aerated)',          val: bl(MU.gazbetoni,30),                                                           color:'#8b1a1a' }
+  ];
   new Chart(document.getElementById('buildingChart'),{
     type:'bar',
-    data:{
-      labels:['Bank of Georgia HQ\n(60 cm reinforced)','Axis Towers\n(glass + concrete core)','Saburtalo Khrushchyovka\n(20 cm panel)','New Saburtalo Block\n(30 cm gazbetoni)'],
-      datasets:[{label:'Radiation penetration (%)',data:[bog,axis,khru,modern],
-        backgroundColor:['rgba(42,107,42,0.7)','rgba(31,95,159,0.7)','rgba(200,112,32,0.7)','rgba(139,26,26,0.7)'],
-        borderColor:['#2a6b2a','#1f5f9f','#c87020','#8b1a1a'],borderWidth:2}]
+    data:{ labels:items.map(d=>d.label),
+      datasets:[{ data:items.map(d=>d.val), backgroundColor:items.map(d=>d.color+'cc'),
+        borderWidth:0, borderRadius:4, barPercentage:0.55 }]
     },
-    options:{responsive:true,maintainAspectRatio:false,
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:28 } },
       scales:{
-        x:{grid:{display:false},ticks:{font:{size:10}}},
-        y:{type:'logarithmic',title:{display:true,text:'Radiation penetration (%) — log scale',color:'#7a7468'},min:0.001,max:50,grid:{color:'rgba(0,0,0,0.06)'}}
+        x:{ ...xBase(''), grid:{display:false} },
+        y:{ ...yLog('Penetration (%)',0.001,20) }
       },
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`Penetration: ${c.parsed.y.toFixed(4)}%`}}}
-    }
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c=>`${c.parsed.y.toFixed(4)}%` } }
+      }
+    },
+    plugins:[labelPlugin]
   });
 })();
 
@@ -938,47 +1019,58 @@ Chart.defaults.color = '#3a3830';
 (function(){
   const archMult=1.317;
   const soilP=Math.exp(-MU.soil*47*100);
-  const flatP=soilP*Math.exp(-MU.heavy*3*100)*100;
-  const archP=soilP*Math.exp(-MU.heavy*3*archMult*100)*100;
+  const flat=soilP*Math.exp(-MU.heavy*3*100)*100;
+  const arch=soilP*Math.exp(-MU.heavy*3*archMult*100)*100;
+  // Show at 5m instead for visual clarity (47m both are 0)
+  const s5=Math.exp(-MU.soil*5*100);
+  const flat5=s5*Math.exp(-MU.heavy*3*100)*100;
+  const arch5=s5*Math.exp(-MU.heavy*3*archMult*100)*100;
   new Chart(document.getElementById('archChart'),{
     type:'bar',
     data:{
-      labels:['Theoretical Flat Ceiling (47m soil + 3m concrete, θ=0°)','Real Arch Geometry (47m soil + 3m arch, θ~Uniform[0°,60°])'],
-      datasets:[{label:'Transmitted radiation (%)',data:[flatP,archP],
-        backgroundColor:['rgba(136,135,128,0.75)','rgba(31,95,159,0.75)'],
-        borderColor:['#888780','#1f5f9f'],borderWidth:2}]
+      labels:['Flat ceiling','Arch vault'],
+      datasets:[{ data:[flat5,arch5],
+        backgroundColor:['rgba(120,116,104,0.8)','rgba(31,95,159,0.85)'],
+        borderWidth:0, borderRadius:4, barPercentage:0.4 }]
     },
-    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:28 } },
       scales:{
-        x:{type:'logarithmic',title:{display:true,text:'Transmitted radiation (%) — log scale',color:'#7a7468'},grid:{color:'rgba(0,0,0,0.06)'}},
-        y:{grid:{display:false}}
+        x:{ ...xBase('Configuration (5 m soil depth shown)'), grid:{display:false} },
+        y:{ ...yBase('Transmitted (%)'), suggestedMax: flat5*1.25 }
       },
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`Penetration: ${c.parsed.x.toExponential(3)}%`}}}
-    }
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c=>{ const v=[flat5,arch5][c.dataIndex]; return `${v.toFixed(5)}%`; } } }
+      }
+    },
+    plugins:[labelPlugin]
   });
 })();
 
 // ── GRAPH 9: Arch vs Flat across depths ──────
 (function(){
-  const depths=[2,5,8,10,12,15,20,25,30];
+  const depths=[2,4,6,8,10,12,15,20,25];
   const archMult=1.317;
-  const flat=depths.map(d=>{const s=Math.exp(-MU.soil*d*100);return s*Math.exp(-MU.heavy*3*100)*100;});
-  const arch=depths.map(d=>{const s=Math.exp(-MU.soil*d*100);return s*Math.exp(-MU.heavy*3*archMult*100)*100;});
+  const flat=depths.map(d=>Math.exp(-MU.soil*d*100)*Math.exp(-MU.heavy*3*100)*100);
+  const arch=depths.map(d=>Math.exp(-MU.soil*d*100)*Math.exp(-MU.heavy*3*archMult*100)*100);
   new Chart(document.getElementById('archDepthChart'),{
     type:'line',
     data:{
       labels:depths.map(d=>d+' m'),
       datasets:[
-        {label:'Flat ceiling',data:flat,borderColor:'#888780',backgroundColor:'rgba(136,135,128,0.1)',borderWidth:2.5,pointRadius:4,tension:0.3},
-        {label:'Arch geometry (θ~U[0°,60°])',data:arch,borderColor:'#1f5f9f',backgroundColor:'rgba(31,95,159,0.1)',borderWidth:2.5,pointRadius:4,tension:0.3}
+        { label:'Flat ceiling', data:flat, borderColor:'#7a7468', backgroundColor:'rgba(120,116,104,0.08)', borderWidth:2.5, pointRadius:5, pointBackgroundColor:'#7a7468', fill:true, tension:0.35 },
+        { label:'Arch vault',   data:arch, borderColor:'#1f5f9f', backgroundColor:'rgba(31,95,159,0.08)',   borderWidth:2.5, pointRadius:5, pointBackgroundColor:'#1f5f9f', fill:true, tension:0.35 }
       ]
     },
-    options:{responsive:true,maintainAspectRatio:false,
+    options:{ responsive:true, maintainAspectRatio:false,
       scales:{
-        x:{title:{display:true,text:'Soil depth above station',color:'#7a7468'},grid:{color:'rgba(0,0,0,0.06)'}},
-        y:{type:'logarithmic',title:{display:true,text:'Transmitted radiation (%) — log scale',color:'#7a7468'},grid:{color:'rgba(0,0,0,0.06)'}}
+        x:{ ...xBase('Soil depth') },
+        y:{ ...yLog('Transmitted (%)', 1e-15, 100) }
       },
-      plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toExponential(3)}%`}}}
+      plugins:{
+        legend:{ position:'top', labels:{ boxWidth:12, padding:20, color:INK, font:{family:FONT,size:11} } },
+        tooltip:{ callbacks:{ label:c=>`${c.dataset.label}: ${c.parsed.y.toExponential(2)}%` } }
+      }
     }
   });
 })();
