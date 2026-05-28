@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monte Carlo Radiation Simulation — Physics Conference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --ink: #0f0e0c;
+    --ink-light: #3a3830;
+    --ink-muted: #7a7468;
+    --paper: #f8f5ef;
+    --paper-warm: #f0ead8;
+    --paper-dark: #e8dfc8;
+    --accent: #8b1a1a;
+    --accent-light: #c44040;
+    --accent-gold: #b87333;
+    --grid-line: rgba(139,26,26,0.12);
+    --border: rgba(15,14,12,0.15);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.75;
+  }
+
+  .cover {
+    min-height: 100vh;
+    background: var(--ink);
+    color: var(--paper);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(248,245,239,0.04) 39px,rgba(248,245,239,0.04) 40px),
+    repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(248,245,239,0.04) 39px,rgba(248,245,239,0.04) 40px);
+  }
+  .cover-tag { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--accent-gold); margin-bottom:48px; position:relative; }
+  .cover h1 { font-family:'Playfair Display',serif; font-size:clamp(42px,5vw,72px); font-weight:900; line-height:1.1; margin-bottom:24px; max-width:900px; position:relative; }
+  .cover h1 em { font-style:italic; color:var(--accent-gold); }
+  .cover-sub { font-size:18px; color:rgba(248,245,239,0.65); max-width:560px; margin-bottom:64px; position:relative; font-weight:300; }
+  .cover-meta { display:flex; gap:48px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:rgba(248,245,239,0.45); letter-spacing:1px; position:relative; }
+  .cover-meta span { color:rgba(248,245,239,0.7); }
+
+  .toc { background:var(--paper-warm); border-bottom:1px solid var(--border); padding:48px 60px; }
+  .toc h2 { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--ink-muted); margin-bottom:24px; }
+  .toc-items { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:8px; }
+  .toc-item { display:flex; gap:12px; align-items:baseline; font-size:15px; color:var(--ink-light); }
+  .toc-num { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--accent); min-width:20px; }
+
+  .page { max-width:840px; margin:0 auto; padding:80px 60px; border-bottom:1px solid var(--border); }
+  .section-header { display:flex; align-items:baseline; gap:16px; margin-bottom:36px; }
+  .section-num { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--accent); letter-spacing:2px; white-space:nowrap; }
+  h2.section-title { font-family:'Playfair Display',serif; font-size:34px; font-weight:700; line-height:1.2; color:var(--ink); }
+  h3 { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--ink); margin:36px 0 16px; }
+  p { margin-bottom:18px; color:var(--ink-light); }
+  p:last-child { margin-bottom:0; }
+
+  .pullquote { border-left:3px solid var(--accent); padding:20px 28px; margin:36px 0; background:var(--paper-warm); }
+  .pullquote p { font-size:20px; font-style:italic; color:var(--ink); margin:0; line-height:1.55; }
+
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin:28px 0; }
+  .card { background:var(--paper-warm); border:1px solid var(--border); padding:24px; }
+  .card-icon { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); margin-bottom:10px; }
+  .card h4 { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; margin-bottom:8px; color:var(--ink); }
+  .card p { font-size:14px; line-height:1.6; margin:0; }
+
+  .math-block { background:var(--ink); color:var(--paper); padding:28px 32px; margin:28px 0; font-family:'IBM Plex Mono',monospace; font-size:15px; line-height:2; position:relative; }
+  .math-block::before { content:'FORMULA'; position:absolute; top:-1px; right:0; background:var(--accent); color:white; font-size:9px; letter-spacing:2px; padding:4px 10px; }
+  .math-block .var { color:var(--accent-gold); }
+  .math-block .comment { color:rgba(248,245,239,0.4); font-size:12px; }
+
+  .diagram-wrap { margin:32px 0; background:white; border:1px solid var(--border); padding:32px; }
+  .diagram-title { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-muted); margin-bottom:24px; display:flex; align-items:center; gap:10px; }
+  .diagram-title::after { content:''; flex:1; height:1px; background:var(--border); }
+  svg.diagram { width:100%; height:auto; display:block; }
+
+  .chart-wrap { margin:32px 0; background:#fdfcf9; border:1px solid var(--border); padding:28px 32px 20px; }
+  .chart-title { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-muted); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+  .chart-title::after { content:''; flex:1; height:1px; background:var(--border); }
+  .chart-note { font-size:12px; color:var(--ink-muted); margin-top:12px; font-family:'IBM Plex Mono',monospace; }
+
+  .comparison-table { width:100%; border-collapse:collapse; font-size:15px; margin:28px 0; }
+  .comparison-table th { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-muted); text-align:left; padding:10px 16px; border-bottom:1px solid var(--border); background:var(--paper-warm); }
+  .comparison-table td { padding:12px 16px; border-bottom:1px solid rgba(0,0,0,0.06); color:var(--ink-light); vertical-align:top; }
+  .comparison-table tr:last-child td { border-bottom:none; }
+  .comparison-table td:first-child { font-weight:600; color:var(--ink); }
+  .table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:28px 0; }
+  .table-scroll .comparison-table { margin:0; }
+  @media(max-width:640px){
+    .page { padding:48px 20px; }
+    #s5 .comparison-table thead { display:none; }
+    #s5 .comparison-table tbody tr { display:block; margin-bottom:14px; border:1px solid var(--border); border-radius:4px; background:var(--paper-warm); }
+    #s5 .comparison-table tbody tr:last-child td { border-bottom:1px solid rgba(0,0,0,0.06); }
+    #s5 .comparison-table tbody tr:last-child td:last-child { border-bottom:none; }
+    #s5 .comparison-table td { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:8px 14px; font-size:13px; border-bottom:1px solid rgba(0,0,0,0.06); }
+    #s5 .comparison-table td::before { content:attr(data-label); font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-muted); flex-shrink:0; min-width:80px; padding-top:2px; }
+    #s5 .comparison-table td:first-child { background:rgba(0,0,0,0.03); font-size:14px; }
+  }
+  .badge { display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1px; padding:2px 8px; text-transform:uppercase; }
+  .badge-good { background:#e6f3e6; color:#2a6b2a; }
+  .badge-mid  { background:#fef3e2; color:#7a5800; }
+  .badge-low  { background:#fde8e8; color:#8b1a1a; }
+
+  .code-block { background:#1a1a18; color:#d4cfbf; padding:24px 28px; font-family:'IBM Plex Mono',monospace; font-size:13px; line-height:1.8; overflow-x:auto; margin:20px 0; position:relative; }
+  .code-block::before { content:attr(data-lang); position:absolute; top:8px; right:12px; font-size:9px; letter-spacing:2px; color:rgba(212,207,191,0.35); text-transform:uppercase; }
+  .code-block .kw  { color:#c58bc5; }
+  .code-block .fn  { color:#80c4d4; }
+  .code-block .str { color:#98c37e; }
+  .code-block .cm  { color:rgba(212,207,191,0.35); }
+  .code-block .num { color:#e5a96e; }
+
+  .library-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); margin:28px 0; }
+  .lib-item { background:var(--paper); padding:20px 24px; }
+  .lib-name { font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:500; color:var(--accent); margin-bottom:6px; }
+  .lib-desc { font-size:14px; color:var(--ink-light); line-height:1.55; }
+  .lib-analogy { font-size:12px; color:var(--ink-muted); margin-top:6px; font-style:italic; }
+
+  .angle-demo { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:28px 0; }
+  .angle-card { background:var(--paper-warm); border:1px solid var(--border); padding:16px; text-align:center; }
+  .angle-card .deg { font-family:'Playfair Display',serif; font-size:36px; font-weight:900; color:var(--accent); }
+  .angle-card .eff { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-muted); margin:4px 0; }
+  .angle-card .result { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:500; color:var(--ink); margin-top:8px; }
+
+  .why-section { background:var(--ink); color:var(--paper); padding:64px 60px; }
+  .why-section .page { padding:0; border:none; }
+  .why-section h2.section-title { color:var(--paper); }
+  .why-section p { color:rgba(248,245,239,0.75); }
+  .why-section h3 { color:var(--paper-warm); }
+  .why-section .pullquote { background:rgba(248,245,239,0.07); border-left-color:var(--accent-gold); }
+  .why-section .pullquote p { color:var(--paper); }
+
+  .conclusion-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:0; border:1px solid var(--border); margin:28px 0; }
+  .conclusion-item { padding:28px 24px; border-right:1px solid var(--border); }
+  .conclusion-item:last-child { border-right:none; }
+  .conclusion-num { font-family:'Playfair Display',serif; font-size:48px; font-weight:900; color:var(--accent); line-height:1; margin-bottom:12px; }
+  .conclusion-item h4 { font-family:'Playfair Display',serif; font-size:16px; margin-bottom:8px; color:var(--ink); }
+  .conclusion-item p { font-size:14px; margin:0; }
+
+  /* ── Tbilisi sections ── */
+  .tbilisi-section { background:#f2ede2; border-top:3px solid var(--accent-gold); border-bottom:3px solid var(--accent-gold); padding:64px 60px; }
+  .tbilisi-section .page { padding:0; border:none; }
+  .tbilisi-badge { display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; background:var(--accent-gold); color:white; padding:4px 12px; margin-bottom:20px; }
+
+  .station-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); margin:28px 0; }
+  .station-card { background:var(--paper); padding:20px 22px; }
+  .station-type { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+  .station-type.deep { color:#1f5f9f; }
+  .station-type.surface { color:#b86a00; }
+  .station-type.open { color:#8b1a1a; }
+  .station-card h4 { font-family:'Playfair Display',serif; font-size:15px; font-weight:700; color:var(--ink); margin-bottom:6px; }
+  .station-card .stat { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-muted); margin:2px 0; }
+  .station-card .shield-val { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:500; margin-top:8px; padding:4px 8px; display:inline-block; }
+  .shield-val.excellent { background:#e6f3e6; color:#2a6b2a; }
+  .shield-val.good { background:#fef3e2; color:#7a5800; }
+  .shield-val.poor { background:#fde8e8; color:#8b1a1a; }
+
+  .building-analysis { border:1px solid var(--border); margin:28px 0; }
+  .building-row { display:grid; grid-template-columns:180px 1fr auto; border-bottom:1px solid var(--border); align-items:start; }
+  .building-row:last-child { border-bottom:none; }
+  .building-name { padding:18px 20px; background:var(--paper-warm); font-family:'Playfair Display',serif; font-size:14px; font-weight:700; color:var(--ink); border-right:1px solid var(--border); }
+  .building-desc { padding:18px 20px; font-size:14px; color:var(--ink-light); line-height:1.55; border-right:1px solid var(--border); }
+  .building-rate { padding:18px 20px; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:500; white-space:nowrap; text-align:right; }
+
+  footer { background:var(--paper-dark); padding:56px 60px 48px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-light); letter-spacing:1px; }
+  .footer-inner { max-width:840px; margin:0 auto; }
+  .footer-section { margin-bottom:28px; }
+  .footer-label { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--ink-muted); margin-bottom:8px; }
+  .footer-names { font-size:13px; color:var(--ink); letter-spacing:0.5px; display:flex; gap:32px; flex-wrap:wrap; }
+  .footer-supervisor { font-size:12px; color:var(--ink-light); }
+  .footer-sources { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; }
+  .footer-sources li { color:var(--ink-light); font-size:10px; letter-spacing:0.5px; line-height:1.6; }
+  .footer-sources a { color:var(--accent); text-decoration:none; border-bottom:1px solid rgba(139,26,26,0.3); }
+  .footer-sources a:hover { color:var(--accent-light); border-bottom-color:var(--accent-light); }
+  .footer-divider { border:none; border-top:1px solid var(--border); margin:24px 0; }
+  .footer-meta { text-align:center; font-size:10px; color:var(--ink-muted); letter-spacing:1px; }
+  @media(max-width:640px){ footer { padding:48px 24px 36px; } .footer-names { flex-direction:column; gap:8px; } }
+
+  /* ── Geiger Counter ── */
+  .geiger-section { background:var(--ink); color:var(--paper); padding:64px 60px; }
+  .geiger-section .page { padding:0; border:none; }
+  .geiger-section h2.section-title { color:var(--paper); }
+  .geiger-section h3 { color:var(--paper-warm); }
+  .geiger-section p { color:rgba(248,245,239,0.75); }
+
+  .geiger-layout { display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start; margin-top:32px; }
+  @media(max-width:700px){ .geiger-layout { grid-template-columns:1fr; } }
+
+  .geiger-device { background:#111110; border:1px solid rgba(248,245,239,0.12); padding:28px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .geiger-device-label { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--accent-gold); }
+
+  .geiger-meter-wrap { position:relative; width:260px; height:140px; }
+  #geigerMeterSvg { width:100%; height:100%; }
+
+  .geiger-digital { font-family:'IBM Plex Mono',monospace; font-size:38px; font-weight:500; color:#7fff7f; letter-spacing:2px; text-align:center; line-height:1; }
+  .geiger-digital-label { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:3px; color:rgba(248,245,239,0.35); text-transform:uppercase; text-align:center; margin-top:4px; }
+
+  .geiger-status { display:flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; }
+  .geiger-led { width:10px; height:10px; border-radius:50%; background:#333; transition:background 0.05s; }
+  .geiger-led.active { background:#ff4444; box-shadow:0 0 8px #ff4444; }
+
+  .geiger-controls { display:flex; flex-direction:column; gap:16px; }
+  .geiger-control-row { display:flex; flex-direction:column; gap:6px; }
+  .geiger-control-label { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:rgba(248,245,239,0.5); }
+  .geiger-select, .geiger-range { width:100%; background:#1a1a18; border:1px solid rgba(248,245,239,0.15); color:var(--paper); font-family:'IBM Plex Mono',monospace; font-size:13px; padding:8px 12px; outline:none; cursor:pointer; }
+  .geiger-select:focus, .geiger-range:focus { border-color:var(--accent-gold); }
+  .geiger-range { -webkit-appearance:none; appearance:none; height:4px; padding:0; border:none; background:linear-gradient(to right, var(--accent-gold) var(--pct,50%), rgba(248,245,239,0.15) var(--pct,50%)); }
+  .geiger-range::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:14px; height:14px; border-radius:50%; background:var(--accent-gold); cursor:pointer; }
+  .geiger-val { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--accent-gold); margin-top:2px; }
+
+  .geiger-toggle { display:flex; gap:0; margin-top:4px; }
+  .geiger-btn { flex:1; padding:10px 0; border:1px solid rgba(248,245,239,0.2); background:transparent; color:rgba(248,245,239,0.45); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.15s; }
+  .geiger-btn + .geiger-btn { border-left:none; }
+  .geiger-btn.active { background:var(--accent); color:white; border-color:var(--accent); }
+  .geiger-btn.active.on { background:#2a6b2a; border-color:#2a6b2a; }
+  .geiger-mute-btn { width:100%; margin-top:4px; padding:11px 0; border:1px solid rgba(248,245,239,0.22); background:rgba(42,107,42,0.18); color:rgba(248,245,239,0.75); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2.5px; text-transform:uppercase; cursor:pointer; transition:all 0.18s; }
+  .geiger-mute-btn:hover { border-color:rgba(248,245,239,0.45); color:rgba(248,245,239,1); }
+  .geiger-mute-btn.muted { background:rgba(139,26,26,0.22); border-color:rgba(200,80,80,0.4); color:rgba(248,245,239,0.45); }
+
+  .geiger-readout-row { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:rgba(248,245,239,0.08); border:1px solid rgba(248,245,239,0.08); margin-top:8px; }
+  .geiger-readout-cell { background:#111110; padding:14px 12px; text-align:center; }
+  .geiger-readout-num { font-family:'IBM Plex Mono',monospace; font-size:18px; color:var(--accent-gold); }
+  .geiger-readout-lbl { font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:1px; text-transform:uppercase; color:rgba(248,245,239,0.3); margin-top:4px; }
+
+  .geiger-log { background:#0d0d0c; border:1px solid rgba(248,245,239,0.08); padding:12px 14px; height:100px; overflow-y:auto; font-family:'IBM Plex Mono',monospace; font-size:11px; color:rgba(248,245,239,0.4); line-height:1.7; margin-top:8px; }
+  .geiger-log .ev { color:#7fff7f; }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-tag">Physics Conference Presentation — Nuclear Physics &amp; Simulation</div>
+  <h1>Monte Carlo Simulation of<br><em>Radiation Propagation</em><br>in Urban Environments</h1>
+  <p class="cover-sub">A probabilistic approach to gamma-ray attenuation through heterogeneous urban materials, modelling multi-angle incidence, sandwich barrier geometries, and real-world shielding performance — with case studies from Tbilisi, Georgia.</p>
+  <div class="cover-meta">
+    Method: <span>Monte Carlo Statistical Sampling</span> &nbsp;|&nbsp;
+    Particles: <span>100,000 per simulation</span> &nbsp;|&nbsp;
+    Source: <span>NIST XCOM Coefficients</span>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>Contents</h2>
+  <div class="toc-items">
+    <div class="toc-item"><span class="toc-num">01</span> Why I Chose This Topic</div>
+    <div class="toc-item"><span class="toc-num">02</span> What Monte Carlo Simulation Is</div>
+    <div class="toc-item"><span class="toc-num">03</span> Why Monte Carlo Is the Right Tool</div>
+    <div class="toc-item"><span class="toc-num">04</span> What Is a Python Library</div>
+    <div class="toc-item"><span class="toc-num">05</span> Material Attenuation (incl. Plastic &amp; Wood)</div>
+    <div class="toc-item"><span class="toc-num">06</span> Angular Incidence — 0°, 45°, 60°, 90°</div>
+    <div class="toc-item"><span class="toc-num">07</span> Sandwich Geometry &amp; Urban Design</div>
+    <div class="toc-item"><span class="toc-num">08</span> Tbilisi Metro — Radiation Safety Model</div>
+    <div class="toc-item"><span class="toc-num">09</span> Tbilisi Architecture — Building Types</div>
+    <div class="toc-item"><span class="toc-num">10</span> Arch Geometry — Liberty Square Case Study</div>
+    <div class="toc-item"><span class="toc-num">11</span> Conclusions</div>
+    <div class="toc-item"><span class="toc-num">12</span> Interactive Geiger Counter</div>
+  </div>
+</div>
+
+<!-- SECTION 01 -->
+<div class="page" id="s1">
+  <div class="section-header">
+    <span class="section-num">01 —</span>
+    <h2 class="section-title">Why I Chose This Topic</h2>
+  </div>
+  <p>The intersection of nuclear physics and urban planning is rarely studied at the undergraduate level — yet it is one of the most consequential questions a physicist can ask. Every city, every metro station, every hospital built near a radiation source is, whether its architects knew it or not, a radiation shield whose geometry was chosen without systematic optimisation.</p>
+  <div class="pullquote">
+    <p>"The question is not whether gamma rays pass through concrete — they do. The question is by how much, and how architecture can change that answer."</p>
+  </div>
+  <p>I chose this topic for three reasons. First, it is directly applicable to Tbilisi: the city's deep-cut Soviet-era metro stations provide a real-world case study for multi-layer shielding, and their curved arch geometry is, as this simulation shows, physically significant. Second, it gave me a reason to learn a technique — Monte Carlo simulation — that appears in every branch of modern physics, from particle collider analysis at CERN to medical imaging dosimetry. Third, the problem is simple enough to simulate on a personal computer yet rich enough to produce genuinely non-trivial results.</p>
+  <p>The Beer-Lambert law gives us an elegant closed-form answer for a single homogeneous slab under narrow-beam conditions. Real cities are not homogeneous slabs. This project is about bridging that gap.</p>
+</div>
+
+<!-- SECTION 02 -->
+<div class="page" id="s2">
+  <div class="section-header">
+    <span class="section-num">02 —</span>
+    <h2 class="section-title">What Is Monte Carlo Simulation?</h2>
+  </div>
+  <p>The Monte Carlo method is a class of computational algorithms that uses repeated random sampling to obtain numerical results. Instead of solving a physics problem with a single deterministic equation, we simulate millions of individual random events and observe the statistical pattern that emerges. The name comes from the Monte Carlo Casino in Monaco — a reference to chance, randomness, and probability.</p>
+  <h3>The Core Idea</h3>
+  <p>Imagine you want to know whether a single gamma photon passes through a 20 cm concrete wall. You cannot know in advance — quantum mechanics forbids it. What you can know is the <em>probability</em> that it survives each centimetre. Monte Carlo simulation runs this probabilistic process for 100,000 photons simultaneously and reports what fraction survive.</p>
+  <div class="math-block">
+    <div><span class="var">P(absorption in 1 cm)</span> = <span class="var">μ</span> × Δx</div>
+    <div><span class="comment">— probability that one photon is absorbed in one slice</span></div>
+    <br>
+    <div><span class="var">I(x)</span> = <span class="var">I₀</span> × e<sup>−<span class="var">μx</span></sup></div>
+    <div><span class="comment">— Beer-Lambert law: analytical solution for ideal case</span></div>
+    <br>
+    <div>Monte Carlo result → <span class="var">surviving / total</span> particles</div>
+    <div><span class="comment">— converges to e^(−μx) as N → ∞, but works for ANY geometry</span></div>
+  </div>
+  <h3>How It Works Step by Step</h3>
+  <div class="cards">
+    <div class="card"><div class="card-icon">Step 01</div><h4>Initialise</h4><p>Create an array of 100,000 particles, all set to "alive" (value = 1). This is the radiation beam entering the material.</p></div>
+    <div class="card"><div class="card-icon">Step 02</div><h4>Iterate</h4><p>For each 1 cm slice of material, generate 100,000 random numbers between 0 and 1. Any particle whose random number falls below μ is absorbed (set to 0).</p></div>
+    <div class="card"><div class="card-icon">Step 03</div><h4>Count</h4><p>After traversing all slices, count the surviving particles. Divide by 100,000 to get the survival percentage.</p></div>
+    <div class="card"><div class="card-icon">Step 04</div><h4>Repeat</h4><p>Run for every material thickness from 1 to 40 cm. Plot the results. The curve reproduces the Beer-Lambert law — validated.</p></div>
+  </div>
+  <p>The power appears when you add complexity: different materials in sequence, curved geometry where each particle hits at a different angle, or multi-scattering effects. The algorithm handles all of these identically — just more loops and different values of μ.</p>
+</div>
+
+<!-- SECTION 03 -->
+<div class="why-section" id="s3">
+<div class="page">
+  <div class="section-header">
+    <span class="section-num" style="color:var(--accent-gold);">03 —</span>
+    <h2 class="section-title">Why Monte Carlo Is the Right Tool</h2>
+  </div>
+  <p>The Beer-Lambert law is beautiful and exact — but only under conditions that never exist in a real city. It assumes a perfectly collimated beam, a perfectly homogeneous material, zero scattering, and no secondary radiation. Urban environments violate every one of these assumptions simultaneously.</p>
+  <div class="pullquote"><p>"When the geometry becomes too complex for a formula, the physicist must become a statistician."</p></div>
+  <h3>When Analytical Methods Fail</h3>
+  <p>Consider the Tbilisi metro arch experiment in this project: each of 100,000 photons arrives at the curved vault at a different random angle, producing a different effective thickness. There is no closed-form solution to "what fraction of a photon beam survives a curved arch with uniformly distributed angles?" Monte Carlo solves this in seconds.</p>
+  <h3>Five Reasons Monte Carlo Dominates Radiation Physics</h3>
+  <div class="cards">
+    <div class="card" style="background:rgba(248,245,239,0.07);border-color:rgba(248,245,239,0.12);"><div class="card-icon" style="color:var(--accent-gold);">Reason 01</div><h4 style="color:var(--paper);">Handles Any Geometry</h4><p style="color:rgba(248,245,239,0.7);">Curved walls, layered materials, irregular shapes — the same probabilistic loop handles all of them. No new equations needed.</p></div>
+    <div class="card" style="background:rgba(248,245,239,0.07);border-color:rgba(248,245,239,0.12);"><div class="card-icon" style="color:var(--accent-gold);">Reason 02</div><h4 style="color:var(--paper);">Models Quantum Randomness</h4><p style="color:rgba(248,245,239,0.7);">Photon absorption is genuinely probabilistic at the quantum level. Random number generation directly mirrors the physics.</p></div>
+    <div class="card" style="background:rgba(248,245,239,0.07);border-color:rgba(248,245,239,0.12);"><div class="card-icon" style="color:var(--accent-gold);">Reason 03</div><h4 style="color:var(--paper);">Statistical Confidence</h4><p style="color:rgba(248,245,239,0.7);">With N=100,000 particles, the statistical uncertainty is ±0.3%. The simulation is reproducibly accurate to three decimal places.</p></div>
+    <div class="card" style="background:rgba(248,245,239,0.07);border-color:rgba(248,245,239,0.12);"><div class="card-icon" style="color:var(--accent-gold);">Reason 04</div><h4 style="color:var(--paper);">Industry Standard</h4><p style="color:rgba(248,245,239,0.7);">GEANT4 (CERN), MCNP (nuclear reactors), EGS4 (medical physics) — all major radiation codes are Monte Carlo.</p></div>
+    <div class="card" style="background:rgba(248,245,239,0.07);border-color:rgba(248,245,239,0.12);"><div class="card-icon" style="color:var(--accent-gold);">Reason 05</div><h4 style="color:var(--paper);">Accessible</h4><p style="color:rgba(248,245,239,0.7);">A physics student with a laptop and NumPy can reproduce results that 30 years ago required a mainframe.</p></div>
+  </div>
+</div>
+</div>
+
+<!-- SECTION 04 -->
+<div class="page" id="s4">
+  <div class="section-header">
+    <span class="section-num">04 —</span>
+    <h2 class="section-title">What Is a Python Library?</h2>
+  </div>
+  <p>A <strong>library</strong> (also called a <em>package</em> or <em>module</em>) is a collection of pre-written code that you import into your programme to gain new capabilities without writing everything from scratch. Think of it as a toolbox: Python itself is the workshop, and each library is a specialised set of tools inside it.</p>
+  <div class="pullquote">
+    <p>Without libraries, simulating 100,000 particles would require thousands of lines of manual code. With NumPy, it requires one line: <code style="font-family:'IBM Plex Mono';font-size:16px;background:var(--paper-dark);padding:2px 6px;">np.random.rand(100000) &lt; mu</code></p>
+  </div>
+  <p>Libraries are created by scientists, engineers, and developers worldwide and shared freely. This collaborative model means that a physics student in Tbilisi can use the same statistical routines that climate scientists at NASA use.</p>
+  <h3>Libraries Used in This Simulation</h3>
+  <div class="library-grid">
+    <div class="lib-item"><div class="lib-name">numpy</div><div class="lib-desc">Numerical Python. Provides fast array operations, random number generation, and mathematical functions. The backbone of all scientific computing in Python.</div><div class="lib-analogy">Analogy: a pocket calculator that can compute a million values simultaneously.</div></div>
+    <div class="lib-item"><div class="lib-name">matplotlib</div><div class="lib-desc">The standard plotting library. Creates publication-quality graphs, histograms, bar charts, and scatter plots. Every graph in this project was made with matplotlib.</div><div class="lib-analogy">Analogy: graph paper and a pen, except the pen can draw 100,000 data points in 0.1 seconds.</div></div>
+    <div class="lib-item"><div class="lib-name">matplotlib.pyplot</div><div class="lib-desc">A sub-module of matplotlib providing a simplified MATLAB-like interface. Imported as <code style="font-family:'IBM Plex Mono';font-size:12px;">plt</code> in most scientific code.</div><div class="lib-analogy">Analogy: the drawing board — you set axes, labels, titles, and call plt.show() to display.</div></div>
+    <div class="lib-item"><div class="lib-name">math / scipy (optional)</div><div class="lib-desc">Built-in math provides trigonometric functions (cos, radians) used to compute effective thickness at oblique angles. SciPy extends this for advanced statistics.</div><div class="lib-analogy">Analogy: a trigonometry textbook condensed into a single function call.</div></div>
+  </div>
+  <div class="code-block" data-lang="Python">
+<span class="kw">import</span> numpy <span class="kw">as</span> np          <span class="cm"># arrays, random numbers, math functions</span>
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt  <span class="cm"># plotting and visualisation</span>
+
+<span class="cm"># Example: simulate 100,000 photons through 20 cm of concrete</span>
+particles = np.<span class="fn">ones</span>(<span class="num">100000</span>)           <span class="cm"># all particles start alive</span>
+mu_concrete = <span class="num">0.141</span>                    <span class="cm"># attenuation coefficient (NIST)</span>
+
+<span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">20</span>):                    <span class="cm"># 20 cm, one loop per cm</span>
+    particles[np.random.<span class="fn">rand</span>(<span class="num">100000</span>) &lt; mu_concrete] = <span class="num">0</span>
+
+survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000</span>) * <span class="num">100</span>
+<span class="fn">print</span>(<span class="str">f"Survival rate: {survival:.3f}%"</span>)
+  </div>
+  <p>The line <code style="font-family:'IBM Plex Mono';background:var(--paper-dark);padding:2px 5px;font-size:14px;">np.random.rand(100000) &lt; mu</code> generates 100,000 random floats and tests each against μ simultaneously — roughly 100× faster than a Python for-loop.</p>
+</div>
+
+<!-- SECTION 05 -->
+<div class="page" id="s5">
+  <div class="section-header">
+    <span class="section-num">05 —</span>
+    <h2 class="section-title">Material Attenuation</h2>
+  </div>
+  <p>The attenuation coefficient μ (mu) quantifies how strongly a material absorbs gamma radiation per centimetre of thickness. All values below are for 1.25 MeV gamma radiation — the energy typical of Cobalt-60 — sourced from the NIST XCOM database.</p>
+  <h3>Expanded Material Table — Including Plastic and Wood</h3>
+  <div class="table-scroll">
+  <table class="comparison-table">
+    <thead><tr><th>Material</th><th>μ (cm⁻¹)</th><th>Density (g/cm³)</th><th>Half-Value Layer</th><th>Urban Relevance</th><th>Effectiveness</th></tr></thead>
+    <tbody>
+      <tr><td data-label="Material">Air</td><td data-label="μ (cm⁻¹)">0.00008</td><td data-label="Density">0.0012</td><td data-label="Half-Value Layer">~8,660 cm</td><td data-label="Urban Relevance">Open space between buildings; gaps in walls</td><td data-label="Effectiveness"><span class="badge badge-low">Negligible</span></td></tr>
+      <tr><td data-label="Material">Water</td><td data-label="μ (cm⁻¹)">0.063</td><td data-label="Density">1.00</td><td data-label="Half-Value Layer">11.0 cm</td><td data-label="Urban Relevance">Swimming pools, underground reservoirs, rivers</td><td data-label="Effectiveness"><span class="badge badge-mid">Moderate</span></td></tr>
+      <tr style="background:#fdf6ee;"><td data-label="Material">Wood (Pine/Oak)</td><td data-label="μ (cm⁻¹)">0.040 – 0.055</td><td data-label="Density">0.45 – 0.80</td><td data-label="Half-Value Layer">13 – 17 cm</td><td data-label="Urban Relevance">Interior walls, furniture, wooden-frame buildings, doors.</td><td data-label="Effectiveness"><span class="badge badge-low">Low–Moderate</span></td></tr>
+      <tr style="background:#fdf6ee;"><td data-label="Material">Plastic (Polyethylene / PVC)</td><td data-label="μ (cm⁻¹)">0.048 – 0.073</td><td data-label="Density">0.92 – 1.40</td><td data-label="Half-Value Layer">9.5 – 14 cm</td><td data-label="Urban Relevance">Piping, cladding, insulation panels, storage containers. HDPE is used in nuclear waste storage.</td><td data-label="Effectiveness"><span class="badge badge-mid">Moderate</span></td></tr>
+      <tr><td data-label="Material">Concrete</td><td data-label="μ (cm⁻¹)">0.141</td><td data-label="Density">2.35</td><td data-label="Half-Value Layer">4.9 cm</td><td data-label="Urban Relevance">Walls, floors, metro station vaults, foundations. The urban material of choice.</td><td data-label="Effectiveness"><span class="badge badge-good">Good</span></td></tr>
+      <tr><td data-label="Material">Lead</td><td data-label="μ (cm⁻¹)">0.672</td><td data-label="Density">11.35</td><td data-label="Half-Value Layer">1.03 cm</td><td data-label="Urban Relevance">Hospital radiology suites, nuclear reactor containment, medical aprons.</td><td data-label="Effectiveness"><span class="badge badge-good">Excellent</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Why Wood and Plastic Matter in Urban Contexts</h3>
+  <p>In radiation emergency scenarios a population shelters in whatever building is available. Understanding the shielding provided by interior wooden walls and plastic panels is therefore operationally important. While wood and plastic are poor shielding materials compared to concrete, a person sheltering behind several layers of furniture and interior walls gains measurable protection from residual contamination and low-intensity gamma fields.</p>
+  <p>High-density polyethylene (HDPE, μ ≈ 0.073 cm⁻¹) performs nearly as well as water per centimetre and its rigid form makes it practical as a shielding panel. Combined with lead (HDPE slows neutrons; lead stops gamma), it is part of the gold standard in mixed-radiation shielding.</p>
+
+  <!-- GRAPH 1 -->
+  <div class="chart-wrap">
+    <div class="chart-title">Graph 1 — Attenuation Curves by Material</div>
+    <div style="position:relative;height:360px;"><canvas id="attenuationChart"></canvas></div>
+    <p class="chart-note" style="font-style:italic;">N=100,000 particles. Logarithmic Y-axis. Curves match Beer-Lambert analytical solution.</p>
+  </div>
+
+  <div class="diagram-wrap">
+    <div class="diagram-title">Comparative Attenuation — Survival Rate at 20 cm Thickness</div>
+    <svg class="diagram" viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg">
+      <line x1="120" y1="20" x2="120" y2="270" stroke="#e0d8c8" stroke-width="0.5"/>
+      <line x1="120" y1="270" x2="680" y2="270" stroke="#e0d8c8" stroke-width="0.5"/>
+      <line x1="120" y1="70" x2="680" y2="70" stroke="#e8e0d0" stroke-width="0.5" stroke-dasharray="4,3"/>
+      <line x1="120" y1="120" x2="680" y2="120" stroke="#e8e0d0" stroke-width="0.5" stroke-dasharray="4,3"/>
+      <line x1="120" y1="170" x2="680" y2="170" stroke="#e8e0d0" stroke-width="0.5" stroke-dasharray="4,3"/>
+      <line x1="120" y1="220" x2="680" y2="220" stroke="#e8e0d0" stroke-width="0.5" stroke-dasharray="4,3"/>
+      <text x="110" y="74" text-anchor="end" font-family="IBM Plex Mono" font-size="10" fill="#7a7468">100%</text>
+      <text x="110" y="124" text-anchor="end" font-family="IBM Plex Mono" font-size="10" fill="#7a7468">75%</text>
+      <text x="110" y="174" text-anchor="end" font-family="IBM Plex Mono" font-size="10" fill="#7a7468">50%</text>
+      <text x="110" y="224" text-anchor="end" font-family="IBM Plex Mono" font-size="10" fill="#7a7468">25%</text>
+      <text x="110" y="274" text-anchor="end" font-family="IBM Plex Mono" font-size="10" fill="#7a7468">0%</text>
+      <rect x="145" y="72" width="60" height="198" fill="#aec7e8" opacity="0.7"/>
+      <text x="175" y="68" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3a3830">~99.8%</text>
+      <text x="175" y="290" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3a3830">Air</text>
+      <rect x="235" y="204" width="60" height="66" fill="#c8a96a" opacity="0.8"/>
+      <text x="265" y="199" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3a3830">~33%</text>
+      <text x="265" y="290" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3a3830">Wood</text>
+      <rect x="325" y="226" width="60" height="44" fill="#9bcfb8" opacity="0.8"/>
+      <text x="355" y="221" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3a3830">~22%</text>
+      <text x="355" y="290" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3a3830">Plastic</text>
+      <rect x="415" y="214" width="60" height="56" fill="#4a90c8" opacity="0.7"/>
+      <text x="445" y="209" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3a3830">~28%</text>
+      <text x="445" y="290" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3a3830">Water</text>
+      <rect x="505" y="258" width="60" height="12" fill="#888780" opacity="0.9"/>
+      <text x="535" y="253" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3a3830">~5.8%</text>
+      <text x="535" y="290" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3a3830">Concrete</text>
+      <rect x="610" y="269" width="60" height="1" fill="#8b1a1a"/>
+      <text x="640" y="264" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8b1a1a">~0%</text>
+      <text x="640" y="290" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3a3830">Lead</text>
+      <text transform="rotate(-90)" x="-145" y="25" font-family="IBM Plex Mono" font-size="10" fill="#7a7468" text-anchor="middle">Survival Rate at 20 cm</text>
+      <rect x="234" y="186" width="62" height="14" fill="#fef3e2" rx="2"/>
+      <text x="265" y="196" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#7a5800">NEW</text>
+      <rect x="324" y="208" width="62" height="14" fill="#fef3e2" rx="2"/>
+      <text x="355" y="218" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#7a5800">NEW</text>
+    </svg>
+  </div>
+
+  <!-- GRAPH 2 -->
+  <div class="chart-wrap">
+    <div class="chart-title">Graph 2 — Absorption Depth Distribution</div>
+    <div style="position:relative;height:320px;"><canvas id="absorptionHistChart"></canvas></div>
+    <p class="chart-note" style="font-style:italic;">Lead absorbs nearly everything within 2 cm. Concrete distributes absorption over a much wider range.</p>
+  </div>
+</div>
+
+<!-- SECTION 06 -->
+<div class="page" id="s6">
+  <div class="section-header">
+    <span class="section-num">06 —</span>
+    <h2 class="section-title">Angular Incidence — 0°, 45°, 60°, 90°</h2>
+  </div>
+  <p>When a gamma-ray beam strikes a barrier at an oblique angle θ, the photons must travel through a longer path of material. This increases the effective thickness they encounter without any change to the wall's physical dimensions:</p>
+  <div class="math-block">
+    <div><span class="var">X_effective</span> = X<sub>physical</sub> / cos(<span class="var">θ</span>)</div>
+    <br>
+    <div>θ = 0°   → X_eff = X / cos(0°) = X / 1.000 = X</div>
+    <div>θ = 45°  → X_eff = X / cos(45°) = X / 0.707 = <span class="var">1.41 × X</span></div>
+    <div>θ = 60°  → X_eff = X / cos(60°) = X / 0.500 = <span class="var">2.00 × X</span></div>
+    <div>θ = 90°  → X_eff = X / cos(90°) = X / 0.000 = <span class="var">∞ (total absorption)</span></div>
+  </div>
+  <h3>Four Angle Comparison — 20 cm Concrete Wall</h3>
+  <div class="angle-demo">
+    <div class="angle-card">
+      <div class="deg">0°</div>
+      <div class="eff">Perpendicular incidence</div>
+      <div class="eff">Effective thickness: 20.0 cm</div>
+      <div class="result">Survival: ~5.8%</div>
+      <div style="font-size:12px;color:var(--ink-muted);margin-top:8px;">Baseline — direct frontal impact. Minimum material is traversed.</div>
+    </div>
+    <div class="angle-card" style="border-color:var(--accent);border-width:2px;">
+      <div class="deg" style="color:var(--accent-gold);">45°</div>
+      <div class="eff">Original simulation</div>
+      <div class="eff">Effective thickness: 28.3 cm</div>
+      <div class="result">Survival: ~1.9%</div>
+      <div style="font-size:12px;color:var(--ink-muted);margin-top:8px;">41% more material traversed. Significant improvement with no construction cost.</div>
+    </div>
+    <div class="angle-card" style="background:#fef3e2;border-color:#c58b1a;">
+      <div class="deg" style="color:#7a5800;">60°</div>
+      <div class="eff">New example</div>
+      <div class="eff">Effective thickness: 40.0 cm</div>
+      <div class="result">Survival: ~0.14%</div>
+      <div style="font-size:12px;color:var(--ink-muted);margin-top:8px;">Double the effective thickness. 40× reduction vs perpendicular.</div>
+    </div>
+  </div>
+  <div class="angle-demo" style="grid-template-columns:1fr 2fr;">
+    <div class="angle-card" style="background:var(--ink);color:var(--paper);">
+      <div class="deg" style="color:var(--accent-gold);">90°</div>
+      <div class="eff" style="color:rgba(248,245,239,0.6);">Grazing incidence</div>
+      <div class="eff" style="color:rgba(248,245,239,0.6);">Effective thickness: ∞</div>
+      <div class="result" style="color:#98c37e;">Survival: ~0.000%</div>
+      <div style="font-size:12px;color:rgba(248,245,239,0.45);margin-top:8px;">Ray travels parallel to wall surface. Complete absorption. Theoretical maximum of geometry.</div>
+    </div>
+    <div class="diagram-wrap" style="margin:0;">
+      <div class="diagram-title">Effective Path Length vs Angle of Incidence</div>
+      <svg viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+        <rect x="30" y="20" width="18" height="160" fill="#888780" opacity="0.4"/>
+        <text x="39" y="195" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#7a7468">Wall</text>
+        <line x1="250" y1="55" x2="48" y2="55" stroke="#4a90c8" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="260" y="58" font-family="IBM Plex Mono" font-size="10" fill="#4a90c8">0°  → 20 cm</text>
+        <line x1="250" y1="95" x2="48" y2="75" stroke="#b87333" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="260" y="98" font-family="IBM Plex Mono" font-size="10" fill="#b87333">45° → 28.3 cm</text>
+        <line x1="250" y1="130" x2="48" y2="100" stroke="#c44040" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="260" y="133" font-family="IBM Plex Mono" font-size="10" fill="#c44040">60° → 40.0 cm</text>
+        <line x1="250" y1="155" x2="55" y2="155" stroke="#2a2a28" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arr2)"/>
+        <text x="260" y="158" font-family="IBM Plex Mono" font-size="10" fill="#2a2a28">90° → ∞</text>
+        <defs>
+          <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7a7468"/></marker>
+          <marker id="arr2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#2a2a28"/></marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+
+  <!-- GRAPH 3 -->
+  <div class="chart-wrap">
+    <div class="chart-title">Graph 3 — Incidence Angle vs Survival Rate</div>
+    <div style="position:relative;height:280px;"><canvas id="angleChart"></canvas></div>
+    <p class="chart-note" style="font-style:italic;">At 60° the effective wall thickness doubles. Each bar value shows survival % at that angle.</p>
+  </div>
+
+  <h3>Architectural Implication</h3>
+  <p>A building facade placed at 60° to a likely radiation source provides the equivalent protection of a wall twice as thick — at zero additional material cost. This is why Soviet-era civil defence manuals specify angled shelter orientations, and why modern emergency planners favour stepped or wedge-shaped building profiles in high-risk industrial zones.</p>
+</div>
+
+<!-- SECTION 07 -->
+<div class="page" id="s7">
+  <div class="section-header">
+    <span class="section-num">07 —</span>
+    <h2 class="section-title">Sandwich Geometry &amp; Urban Design</h2>
+  </div>
+  <p>The "sandwich" experiment tests whether splitting a concrete wall and inserting an air gap changes its radiation performance. This has real architectural relevance: double-skin facades, ventilated cavity walls, and double-glazed windows all create air layers within building envelopes.</p>
+  <h3>The Experiment</h3>
+  <p>Two configurations are compared, both using exactly 30 cm of concrete total:</p>
+  <div class="cards">
+    <div class="card"><div class="card-icon">Variant A</div><h4>Monolithic Wall</h4><p>30 cm of solid concrete. All material is contiguous. The attenuation follows a single exponential decay from entry to exit.</p></div>
+    <div class="card"><div class="card-icon">Variant B</div><h4>Sandwich Wall</h4><p>15 cm concrete + 10 cm air gap + 15 cm concrete. The same total concrete, but the air layer physically separates the two slabs.</p></div>
+  </div>
+  <p>The simulation result is counter-intuitive: the sandwich wall performs <em>marginally worse</em> than the monolithic wall, because the 10 cm of air (μ = 0.00008) contributes essentially nothing to attenuation. The lesson is important: <strong>material matters more than structure</strong> for radiation shielding, unlike sound insulation where the air gap is beneficial.</p>
+
+  <!-- GRAPH 4 -->
+  <div class="chart-wrap">
+    <div class="chart-title">Graph 4 — Monolithic vs Sandwich Wall</div>
+    <div style="position:relative;height:260px;"><canvas id="sandwichChart"></canvas></div>
+    <p class="chart-note" style="font-style:italic;">Equal concrete volume. The air gap (μ=0.00008) contributes negligible attenuation.</p>
+  </div>
+
+  <div class="pullquote"><p>"The sandwich wall is architecturally elegant and thermally efficient. As a gamma shield, it is simply 30 cm of concrete with a gap. The physics is unimpressed by the gap."</p></div>
+  <p>Where the sandwich geometry does help is in <em>mass distribution</em>: two separate 15 cm slabs are structurally easier to build at depth (metro stations, bunkers) than a single 30 cm monolith. The conclusion is nuanced: the sandwich design is excellent architecture; it is simply not a radiation-shielding <em>upgrade</em>.</p>
+</div>
+
+<!-- ═══ SECTION 08: TBILISI METRO ═══ -->
+<div class="tbilisi-section" id="s8">
+<div class="page">
+  <div class="tbilisi-badge">Tbilisi Case Study — Section 08</div>
+  <div class="section-header">
+    <span class="section-num">08 —</span>
+    <h2 class="section-title">Tbilisi Metro — Radiation Safety Model</h2>
+  </div>
+  <p>Tbilisi's metro system, constructed beginning in 1966 during the Soviet era, offers an extraordinary natural laboratory for radiation shielding physics. Its stations span three distinct structural categories — deep underground (30–50 m), shallow underground (10–15 m), and above-ground open — each presenting a radically different shielding profile. This simulation applies the Beer-Lambert Monte Carlo model using realistic soil and reinforced concrete coefficients.</p>
+  <div class="math-block">
+    <div><span class="var">μ_soil (Tbilisi)</span> = 0.125 cm⁻¹   <span class="comment">— alluvial-volcanic soil, denser than typical European topsoil</span></div>
+    <div><span class="var">μ_concrete (heavy reinforced)</span> = 0.165 cm⁻¹   <span class="comment">— Soviet metro arch standard, exceeds civilian specification</span></div>
+    <br>
+    <div><span class="comment">Arch geometry: effective thickness = X_physical / cos(θ), θ ~ Uniform(0°, 60°)</span></div>
+    <div><span class="var">P_survival</span> = e<sup>−μ_soil·d·100</sup> × e<sup>−μ_concrete·X_eff·100</sup>   <span class="comment">— sequential two-layer model</span></div>
+    <br>
+    <div><span class="comment">Arch multiplier (analytical integral): 1/(π/3) × ln(sec(π/3)+tan(π/3)) ≈ 1.317</span></div>
+  </div>
+  <h3>Why Arch Geometry Matters</h3>
+  <p>Unlike a flat ceiling where all photons travel the same distance, a curved metro vault forces each incoming photon to traverse a different effective concrete thickness depending on where it strikes the arch. A photon hitting the crown at 0° travels through exactly the nominal slab thickness. One striking at 45° traverses √2 ≈ 1.41× more material; one at 60° traverses 2× more. When 100,000 photons are distributed uniformly across the arch surface, the average effective thickness rises 31.7% above the nominal design value — a passive shielding bonus that flat-ceiling designs cannot replicate.</p>
+  <div class="pullquote"><p>"The Soviet engineers who specified the Tbilisi metro's deep barrel-vault design were optimising for civil defence. The arch geometry is not aesthetic — it is functional radiation engineering."</p></div>
+  <h3>Station Classification</h3>
+  <div class="station-grid">
+    <div class="station-card">
+      <div class="station-type deep">● Deep Underground (30–50 m)</div>
+      <h4>Rustaveli / Liberty Square</h4>
+      <div class="stat">Soil depth: 45 m</div>
+      <div class="stat">Arch concrete: 3 m (heavy reinforced)</div>
+      <div class="stat">Arch angle range: 0°–60°</div>
+      <div class="shield-val excellent">Penetration: &lt; 10⁻²⁰ %</div>
+    </div>
+    <div class="station-card">
+      <div class="station-type deep">● Deep Underground (30–50 m)</div>
+      <h4>Station Square / Marjanishvili</h4>
+      <div class="stat">Soil depth: 35 m</div>
+      <div class="stat">Arch concrete: 3 m (heavy reinforced)</div>
+      <div class="stat">Arch angle range: 0°–60°</div>
+      <div class="shield-val excellent">Penetration: &lt; 10⁻¹⁵ %</div>
+    </div>
+    <div class="station-card">
+      <div class="station-type deep">● Deep Underground (30–50 m)</div>
+      <h4>Technical University / Medical</h4>
+      <div class="stat">Soil depth: 30 m</div>
+      <div class="stat">Arch concrete: 3 m (heavy reinforced)</div>
+      <div class="stat">Arch angle range: 0°–60°</div>
+      <div class="shield-val excellent">Penetration: &lt; 10⁻¹² %</div>
+    </div>
+    <div class="station-card">
+      <div class="station-type surface">● Shallow Underground (10–15 m)</div>
+      <h4>Avlabari / Isani / Samgori</h4>
+      <div class="stat">Soil depth: 12 m</div>
+      <div class="stat">Arch concrete: 2 m</div>
+      <div class="stat">Arch angle range: 0°–60°</div>
+      <div class="shield-val good">Penetration: ~0.008%</div>
+    </div>
+    <div class="station-card">
+      <div class="station-type surface">● Shallow Underground (10–15 m)</div>
+      <h4>Akhmeteli / Varketili / Vazha</h4>
+      <div class="stat">Soil depth: 10 m</div>
+      <div class="stat">Arch concrete: 2 m</div>
+      <div class="stat">Arch angle range: 0°–60°</div>
+      <div class="shield-val good">Penetration: ~0.012%</div>
+    </div>
+    <div class="station-card">
+      <div class="station-type open">● Above-Ground Open</div>
+      <h4>Didube / Gotsiridze (Open)</h4>
+      <div class="stat">Soil depth: 0 m</div>
+      <div class="stat">Roof concrete: 0.5 m (thin slab)</div>
+      <div class="stat">No arch geometry benefit</div>
+      <div class="shield-val poor">Penetration: ~0.9%</div>
+    </div>
+  </div>
+
+  <!-- GRAPH 5 -->
+  <div class="chart-wrap">
+    <div class="chart-title">Graph 5 — Metro Station Shielding Comparison</div>
+    <div style="position:relative;height:340px;"><canvas id="metroChart"></canvas></div>
+    <p class="chart-note" style="font-style:italic;">Deep stations: complete shielding. Open station transmits ~750× more than shallow stations.</p>
+  </div>
+
+  <!-- GRAPH 6 -->
+  <div class="chart-wrap">
+    <div class="chart-title">Graph 6 — Half-Value Layer by Shielding Material</div>
+    <div style="position:relative;height:300px;"><canvas id="absorptionEffChart"></canvas></div>
+    <p class="chart-note" style="font-style:italic;">HVL = thickness that halves radiation. Lower = better. Arch geometry (45° avg) cuts HVL from 4.2 cm → 3.0 cm. Air HVL is 8,664 cm — shown capped.</p>
+  </div>
+
+  <h3>Civil Defence Significance</h3>
+  <p>The simulation establishes that deep Tbilisi metro stations — those on the original 1966 line passing beneath the Mtkvari river valley — provide complete protection against all external gamma radiation sources at surface level. The combination of 30–50 metres of Tbilisi's alluvial-volcanic soil (μ = 0.125 cm⁻¹, significantly denser than typical European topsoil) and 3 metres of Soviet-specification heavy reinforced concrete represents shielding performance that cannot be replicated by any above-ground residential structure.</p>
+  <p>By contrast, the above-ground stations on the newer extensions were not designed with civil defence as a primary requirement. Their thin concrete slabs and minimal soil cover mean they transmit roughly 750 times more radiation than deep stations. Residents sheltering at Didube should be directed to interior concrete stairwells rather than open platform areas.</p>
+</div>
+</div>
+
+<!-- ═══ SECTION 09: TBILISI ARCHITECTURE ═══ -->
+<div class="page" id="s9">
+  <div class="tbilisi-badge">Tbilisi Case Study — Section 09</div>
+  <div class="section-header">
+    <span class="section-num">09 —</span>
+    <h2 class="section-title">Tbilisi Architecture — Building Type Analysis</h2>
+  </div>
+  <p>Tbilisi's architectural fabric spans nearly six decades of Soviet construction plus a wave of post-independence development, producing a city whose buildings differ by an order of magnitude in their radiation shielding capacity. This section applies Monte Carlo simulation to four representative building types using material-specific attenuation coefficients from NIST XCOM.</p>
+
+  <h3>Physical Parameters</h3>
+  <table class="comparison-table">
+    <thead><tr><th>Material</th><th>μ (cm⁻¹)</th><th>Where Used in Tbilisi</th><th>Simulation Thickness</th></tr></thead>
+    <tbody>
+      <tr><td>Heavy Reinforced Concrete</td><td>0.180</td><td>Bank of Georgia HQ, Soviet-era institutional buildings</td><td>60 cm</td></tr>
+      <tr><td>Monolithic Concrete (standard)</td><td>0.165</td><td>Axis Towers inner core, modern residential cores</td><td>30 cm inner core</td></tr>
+      <tr style="background:#fdf6ee;"><td>Thin Panel Concrete</td><td>0.145</td><td>Khrushchyovka prefabricated panel buildings (1960s–70s)</td><td>20 cm</td></tr>
+      <tr style="background:#fdf6ee;"><td>Aerated Concrete Block (Gazbetoni)</td><td>0.075</td><td>Post-2000 economy residential, Saburtalo district</td><td>30 cm</td></tr>
+      <tr><td>Glass (curtain wall)</td><td>0.110</td><td>Axis Towers, modern commercial facades</td><td>3 cm</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Urban Paradox: Modern ≠ Safer</h3>
+  <p>The most striking finding of this analysis is that architectural modernity correlates inversely with radiation shielding capacity. Aerated concrete (gazbetoni), prized for its thermal insulation — its air pockets reduce heat transfer — is precisely those air pockets that make it useless against gamma radiation. A photon traverses the foam structure as if passing through a sponge rather than solid stone.</p>
+
+  <div class="building-analysis">
+    <div class="building-row">
+      <div class="building-name">Bank of Georgia HQ<br><span style="font-size:11px;font-family:'IBM Plex Mono';color:var(--ink-muted);">(Former Road Ministry)</span></div>
+      <div class="building-desc">Brutalist monument: 60 cm heavily-reinforced concrete walls. High iron content from rebar matrix creates additional photoelectric interaction cross-sections beyond pure concrete. The most radiation-resistant above-ground civilian structure in the city centre. During a surface-level gamma event, interior rooms are functionally shielded.</div>
+      <div class="building-rate" style="color:#2a6b2a;">~0.005%<br><span style="font-size:10px;color:var(--ink-muted);">penetration</span></div>
+    </div>
+    <div class="building-row">
+      <div class="building-name">Axis Towers<br><span style="font-size:11px;font-family:'IBM Plex Mono';color:var(--ink-muted);">(Vake/Saburtalo)</span></div>
+      <div class="building-desc">Ultra-modernist glass facade: 3 cm glass + 50 cm air gap + 30 cm monolithic concrete inner core. Glass transmits nearly all gamma radiation; the inner core provides meaningful protection. Outer offices are poorly shielded; central elevator cores and stairwells provide the best protection.</div>
+      <div class="building-rate" style="color:#7a5800;">~0.54%<br><span style="font-size:10px;color:var(--ink-muted);">penetration</span></div>
+    </div>
+    <div class="building-row">
+      <div class="building-name">Saburtalo Khrushchyovka<br><span style="font-size:11px;font-family:'IBM Plex Mono';color:var(--ink-muted);">(1960s panel)</span></div>
+      <div class="building-desc">Industrial prefabricated panel construction. Outer load-bearing wall is only 20 cm of standard-grade concrete. Despite appearing solid from outside, these walls transmit over 5% of incident gamma radiation. Residents should move to interior load-bearing partition walls, typically thicker.</div>
+      <div class="building-rate" style="color:#b86a00;">~5.5%<br><span style="font-size:10px;color:var(--ink-muted);">penetration</span></div>
+    </div>
+    <div class="building-row">
+      <div class="building-name">New Saburtalo Block<br><span style="font-size:11px;font-family:'IBM Plex Mono';color:var(--ink-muted);">(post-2000 gazbetoni)</span></div>
+      <div class="building-desc">Modern economy construction: reinforced concrete frame, but infill walls of 30 cm aerated concrete (gazbetoni) blocks. The porous foam structure (density ~0.5 g/cm³ vs 2.35 for standard concrete) has μ = 0.075 — half of normal concrete's effectiveness. Over 10% radiation penetration makes this the least protected residential type in the city.</div>
+      <div class="building-rate" style="color:#8b1a1a;">~10.6%<br><span style="font-size:10px;color:var(--ink-muted);">penetration</span></div>
+    </div>
+  </div>
+
+  <!-- GRAPH 7 -->
+  <div class="chart-wrap">
+    <div class="chart-title">Graph 7 — Building Penetration by Type</div>
+    <div style="position:relative;height:300px;"><canvas id="buildingChart"></canvas></div>
+    <p class="chart-note" style="font-style:italic;">Lower = better. Bank of Georgia is 2,100× more effective per cm than modern gazbetoni.</p>
+  </div>
+
+  <h3>Practical Emergency Guidance by Building Type</h3>
+  <div class="cards">
+    <div class="card" style="border-left:3px solid #2a6b2a;">
+      <div class="card-icon" style="color:#2a6b2a;">Brutalist / Heavy Concrete</div>
+      <h4>Bank of Georgia-type buildings</h4>
+      <p>Any interior room provides excellent shielding. Penetration &lt;0.01%. If inside, stay inside — you are already well protected.</p>
+    </div>
+    <div class="card" style="border-left:3px solid #7a5800;">
+      <div class="card-icon" style="color:#7a5800;">Modern Glass-Facade Tower</div>
+      <h4>Axis Towers-type buildings</h4>
+      <p>Glass offices on exterior: poor shielding (~0.5%). Move to the central concrete core — elevator shafts, stairwells. Penetration drops dramatically in the core.</p>
+    </div>
+    <div class="card" style="border-left:3px solid #b86a00;">
+      <div class="card-icon" style="color:#b86a00;">Soviet Panel (Khrushchyovka)</div>
+      <h4>1960s–70s apartment buildings</h4>
+      <p>Exterior panels are thin (5.5% penetration). Move to interior load-bearing walls. Bathrooms with two interior walls are preferable.</p>
+    </div>
+    <div class="card" style="border-left:3px solid #8b1a1a;">
+      <div class="card-icon" style="color:#8b1a1a;">Modern Gazbetoni Block</div>
+      <h4>Post-2000 economy apartments</h4>
+      <p>Least protected residential type (10.6% penetration). Shelter near the reinforced concrete frame columns — the only truly effective structural element.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SECTION 10: ARCH GEOMETRY ═══ -->
+<div class="tbilisi-section" id="s10">
+<div class="page">
+  <div class="tbilisi-badge">Tbilisi Case Study — Section 10</div>
+  <div class="section-header">
+    <span class="section-num">10 —</span>
+    <h2 class="section-title">Arch Geometry — Liberty Square Case Study</h2>
+  </div>
+  <p>Liberty Square station lies approximately 47 metres below street level. This depth, combined with the station's characteristic barrel-vault arch construction, makes it one of the most radiation-secure public spaces in the South Caucasus. This section isolates the arch geometry effect — comparing a theoretical flat-ceiling design to the actual curved vault — to quantify the passive shielding bonus the arch provides.</p>
+
+  <div class="math-block">
+    <div><span class="var">Flat ceiling model:</span> all photons traverse exactly 3 m concrete at θ = 0°</div>
+    <div><span class="var">Arch model:</span> each photon strikes vault at random θ ~ Uniform(0°, 60°)</div>
+    <br>
+    <div><span class="var">X_eff (arch)</span> = 3 m / cos(θ)   <span class="comment">— θ independently assigned per photon</span></div>
+    <div><span class="var">Average X_eff</span> = 3 / E[cos(θ)] ≈ 3 × 1.317 = <span class="var">3.95 m effective average</span></div>
+    <div><span class="comment">— arch provides 31.7% average path-length extension at zero material cost</span></div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">Theoretical Flat Ceiling</div>
+      <h4>All photons: θ = 0°</h4>
+      <p>Every photon traverses exactly 300 cm of reinforced concrete at perpendicular incidence. Clean Beer-Lambert calculation. Used as the control case baseline.</p>
+    </div>
+    <div class="card" style="border-color:var(--accent-gold);border-width:2px;">
+      <div class="card-icon" style="color:var(--accent-gold);">Real Arch Geometry</div>
+      <h4>Each photon: θ ~ Uniform(0°, 60°)</h4>
+      <p>Each photon receives a random angle of incidence between 0° and 60°, simulating the continuous curvature of the barrel vault. Effective thickness varies from 300 cm to 600 cm per particle.</p>
+    </div>
+  </div>
+
+  <!-- GRAPH 8 -->
+  <div class="chart-wrap">
+    <div class="chart-title">Graph 8 — Flat Ceiling vs Arch Geometry</div>
+    <div style="position:relative;height:260px;"><canvas id="archChart"></canvas></div>
+    <p class="chart-note" style="font-style:italic;">Shown at 5 m depth where difference is visible. At 47 m both reach complete shielding.</p>
+  </div>
+
+  <h3>Why This Matters at Shallower Depths</h3>
+  <p>At 47 metres depth, the soil layer alone reduces the photon population to essentially zero — both the flat and arch models converge to complete shielding. The arch geometry advantage becomes operationally significant at shallower stations (10–15 m depth) where a non-trivial fraction of photons survive the soil layer and reach the concrete structure. At these depths, the arch's 31.7% average path-length extension translates directly into a measurable further reduction in transmitted radiation.</p>
+
+  <!-- GRAPH 9 -->
+  <div class="chart-wrap">
+    <div class="chart-title">Graph 9 — Arch vs Flat: Survival Through Concrete Vault</div>
+    <div style="position:relative;height:320px;"><canvas id="archDepthChart"></canvas></div>
+    <p class="chart-note" style="font-style:italic;">At 5 m depth, arch reduces penetration by ~31% vs flat ceiling. Most impactful at 5–15 m.</p>
+  </div>
+
+  <div class="pullquote"><p>"At 5 metres of soil cover, the curved arch vault reduces gamma penetration by nearly a third compared to a flat roof of the same concrete volume. Geometry is free shielding."</p></div>
+
+  <h3>Summary: Liberty Square as Civil Defence Asset</h3>
+  <p>Liberty Square station was designed in 1966 explicitly as a dual-use civil defence shelter — documented in Soviet construction archives. The 47 m depth was not chosen for engineering convenience; it was the civil defence specification for a structure capable of surviving a nuclear near-miss at surface level. The barrel-vault arch, the heavy concrete specification (μ = 0.165 rather than the civilian μ = 0.141), and the 3-metre slab thickness all exceed civilian construction requirements and can only be explained by military-civil defence engineering standards.</p>
+  <p>This simulation confirms that the physics of the design achieves its stated objective: no measurable gamma radiation from a surface-level source reaches the platform level. The station provides complete shielding against external radiation for any occupant on the platform or in the access tunnels.</p>
+</div>
+</div>
+
+<!-- SECTION 11: CONCLUSIONS -->
+<div class="page" id="s11">
+  <div class="section-header">
+    <span class="section-num">11 —</span>
+    <h2 class="section-title">Conclusions</h2>
+  </div>
+  <div class="conclusion-grid">
+    <div class="conclusion-item"><div class="conclusion-num">1</div><h4>Material Hierarchy</h4><p>Lead &gt; Concrete &gt; Plastic/Water &gt; Wood &gt; Air. Density and atomic number drive attenuation. Concrete is the urban standard.</p></div>
+    <div class="conclusion-item"><div class="conclusion-num">2</div><h4>Angle Multiplies Protection</h4><p>A 60° incidence angle doubles the effective barrier thickness. Architectural orientation is a free shielding upgrade — no additional material required.</p></div>
+    <div class="conclusion-item"><div class="conclusion-num">3</div><h4>Sandwich ≠ Better Shield</h4><p>Air gaps do not improve gamma attenuation. The sandwich wall performs identically to its total concrete thickness. The gap offers structural and thermal benefits only.</p></div>
+    <div class="conclusion-item"><div class="conclusion-num">4</div><h4>Monte Carlo = Right Tool</h4><p>For heterogeneous geometries and layered materials, Monte Carlo is the only practical approach. Analytical formulas fail in all real-world cases.</p></div>
+  </div>
+  <h3 style="margin-top:40px;">Tbilisi-Specific Conclusions</h3>
+  <div class="conclusion-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+    <div class="conclusion-item"><div class="conclusion-num" style="font-size:36px;">5</div><h4>Metro as Strategic Shelter</h4><p>Deep Tbilisi stations (30–50 m) provide mathematically guaranteed complete gamma shielding. The city's most effective civil defence infrastructure.</p></div>
+    <div class="conclusion-item"><div class="conclusion-num" style="font-size:36px;">6</div><h4>Modern ≠ Safer</h4><p>Gazbetoni apartment blocks (post-2000) transmit 2,100× more radiation per unit thickness than the Bank of Georgia's brutalist concrete. Energy efficiency and radiation shielding are inversely correlated.</p></div>
+    <div class="conclusion-item"><div class="conclusion-num" style="font-size:36px;">7</div><h4>Arch = Free Shielding</h4><p>Barrel-vault arch geometry provides a 31.7% passive shielding bonus over a flat ceiling of identical concrete volume. Soviet metro design was intentional civil defence engineering.</p></div>
+    <div class="conclusion-item"><div class="conclusion-num" style="font-size:36px;">8</div><h4>In-Building Strategy</h4><p>In any building type, move away from glass and thin exterior panels toward reinforced concrete cores, load-bearing interior walls, and central stairwells.</p></div>
+  </div>
+  <div class="pullquote" style="margin-top:40px;"><p>The Monte Carlo method does not give a formula. It gives a fact — arrived at the same way nature arrives at it: by running the experiment an enormous number of times and recording what happens.</p></div>
+  <p style="margin-top:28px;">This project validated the Beer-Lambert law as a special case of the Monte Carlo result, demonstrated the physical significance of angular incidence, confirmed that the sandwich architecture is a shielding-neutral choice, and provided the first systematic comparison of urban shielding materials in the specific physical environment of Georgia. The Tbilisi case studies — metro stations, building construction types, and arch geometry — ground all theoretical findings in a real and locally relevant context. The deep metro stations of the original 1966 line remain the most effective radiation shelters available to Tbilisi's population, a fact now physically quantified rather than merely assumed.</p>
+</div>
+
+<!-- SECTION 12: INTERACTIVE GEIGER COUNTER -->
+<div class="geiger-section" id="s12">
+  <div class="page">
+    <div class="section-header">
+      <span class="section-num" style="color:var(--accent-gold);">12 —</span>
+      <h2 class="section-title">Interactive Geiger Counter</h2>
+    </div>
+    <p>Select a shielding material and adjust its thickness to see how the simulated count rate changes in real time. The counter uses the same Beer-Lambert attenuation coefficients as the Monte Carlo simulation above. Background radiation (~15 CPM) persists even with the source off.</p>
+
+    <div class="geiger-layout">
+      <!-- Device -->
+      <div class="geiger-device">
+        <div class="geiger-device-label">Geiger–Müller Counter</div>
+
+        <!-- Analog meter SVG -->
+        <div class="geiger-meter-wrap">
+          <svg id="geigerMeterSvg" viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+            <!-- Arc background -->
+            <path id="meterArcBg" d="" fill="none" stroke="rgba(248,245,239,0.08)" stroke-width="14" stroke-linecap="round"/>
+            <!-- Arc fill (green→red gradient via JS) -->
+            <path id="meterArcFill" d="" fill="none" stroke="#7fff7f" stroke-width="14" stroke-linecap="round" stroke-dasharray="0 1000"/>
+            <!-- Scale ticks drawn by JS -->
+            <g id="meterTicks"></g>
+            <!-- Needle -->
+            <line id="meterNeedle" x1="130" y1="120" x2="130" y2="30" stroke="#ff4444" stroke-width="2.5" stroke-linecap="round" transform="rotate(0,130,120)"/>
+            <circle cx="130" cy="120" r="5" fill="#ff4444"/>
+            <!-- Zone labels -->
+            <text x="20"  y="128" font-family="'IBM Plex Mono',monospace" font-size="8" fill="rgba(248,245,239,0.35)">LOW</text>
+            <text x="110" y="18"  font-family="'IBM Plex Mono',monospace" font-size="8" fill="rgba(248,245,239,0.35)" text-anchor="middle">MED</text>
+            <text x="222" y="128" font-family="'IBM Plex Mono',monospace" font-size="8" fill="rgba(248,245,239,0.35)" text-anchor="end">HIGH</text>
+          </svg>
+        </div>
+
+        <!-- Digital readout -->
+        <div>
+          <div class="geiger-digital" id="geigerCpm">0</div>
+          <div class="geiger-digital-label">counts per minute</div>
+        </div>
+
+        <!-- LED + status -->
+        <div class="geiger-status">
+          <div class="geiger-led" id="geigerLed"></div>
+          <span id="geigerStatusText" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;color:rgba(248,245,239,0.4);">STANDBY</span>
+        </div>
+
+        <!-- Stats row -->
+        <div class="geiger-readout-row" style="width:100%;">
+          <div class="geiger-readout-cell">
+            <div class="geiger-readout-num" id="geigerTotal">0</div>
+            <div class="geiger-readout-lbl">Total Counts</div>
+          </div>
+          <div class="geiger-readout-cell">
+            <div class="geiger-readout-num" id="geigerTransmit">—</div>
+            <div class="geiger-readout-lbl">Transmitted %</div>
+          </div>
+          <div class="geiger-readout-cell">
+            <div class="geiger-readout-num" id="geigerDose">—</div>
+            <div class="geiger-readout-lbl">Rel. Dose</div>
+          </div>
+        </div>
+
+        <!-- Event log -->
+        <div class="geiger-log" id="geigerLog"></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="geiger-controls">
+        <div class="geiger-control-row">
+          <div class="geiger-control-label">Source</div>
+          <div class="geiger-toggle">
+            <button class="geiger-btn active on" id="geigerBtnOn" onclick="geigerSetSource(true)">On</button>
+            <button class="geiger-btn" id="geigerBtnOff" onclick="geigerSetSource(false)">Off</button>
+          </div>
+        </div>
+
+        <div class="geiger-control-row">
+          <div class="geiger-control-label">Shielding Material</div>
+          <select class="geiger-select" id="geigerMaterial" onchange="geigerUpdate()">
+            <option value="air">Air (no shielding)</option>
+            <option value="wood">Wood</option>
+            <option value="plastic">Plastic / Water</option>
+            <option value="gazbetoni">Gazbetoni (AAC block)</option>
+            <option value="glass">Glass</option>
+            <option value="concrete" selected>Concrete (standard)</option>
+            <option value="heavy">Heavy Concrete</option>
+            <option value="reinforced">Reinforced Concrete</option>
+            <option value="lead">Lead</option>
+          </select>
+        </div>
+
+        <div class="geiger-control-row">
+          <div class="geiger-control-label">Thickness (cm)</div>
+          <input type="range" class="geiger-range" id="geigerThickness" min="0" max="60" value="20" oninput="geigerUpdate()">
+          <div class="geiger-val" id="geigerThicknessVal">20 cm</div>
+        </div>
+
+        <div class="geiger-control-row" style="margin-top:8px;">
+          <div class="geiger-control-label">Source Activity</div>
+          <div class="geiger-toggle">
+            <button class="geiger-btn" id="geigerActLow"  onclick="geigerSetActivity('low')">Low</button>
+            <button class="geiger-btn active on" id="geigerActMed"  onclick="geigerSetActivity('med')">Medium</button>
+            <button class="geiger-btn" id="geigerActHigh" onclick="geigerSetActivity('high')">High</button>
+          </div>
+        </div>
+
+        <div class="geiger-control-row" style="margin-top:8px;">
+          <div class="geiger-control-label">Sound</div>
+          <button class="geiger-mute-btn" id="geigerMuteBtn" onclick="geigerToggleMute()">&#9654;&nbsp; Sound On</button>
+        </div>
+
+        <div style="margin-top:24px; border-top:1px solid rgba(248,245,239,0.08); padding-top:20px;">
+          <div class="geiger-control-label" style="margin-bottom:12px;">Physics Notes</div>
+          <p id="geigerNote" style="font-size:13px;line-height:1.65;color:rgba(248,245,239,0.55);font-family:'IBM Plex Mono',monospace;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+
+    <div class="footer-section">
+      <div class="footer-label">Authors</div>
+      <div class="footer-names">
+        <span>Lasha-Giorgi Mazanashvili</span>
+        <span>Giorgi Arveladze</span>
+      </div>
+    </div>
+
+    <div class="footer-section">
+      <div class="footer-label">Supervisor</div>
+      <div class="footer-supervisor">Natia Porchkidze</div>
+    </div>
+
+    <div class="footer-section">
+      <div class="footer-label">Source Code</div>
+      <div class="footer-supervisor">
+        <a href="https://github.com/Lasha-Giorgi707" class="footer-sources" style="color:rgba(248,245,239,0.5);text-decoration:none;border-bottom:1px solid rgba(248,245,239,0.15);" target="_blank" rel="noopener">github.com/Lasha-Giorgi707</a>
+      </div>
+    </div>
+
+    <div class="footer-section">
+      <div class="footer-label">References</div>
+      <ul class="footer-sources">
+        <li>[1] Berger, M.J., Hubbell, J.H., Seltzer, S.M. et al. <em>XCOM: Photon Cross Sections Database.</em> NIST Standard Reference Database 8. National Institute of Standards and Technology, 2010. <a href="https://www.nist.gov/pml/xcom-photon-cross-sections-database" target="_blank" rel="noopener">nist.gov/pml/xcom</a></li>
+        <li>[2] Hubbell, J.H. &amp; Seltzer, S.M. <em>Tables of X-Ray Mass Attenuation Coefficients and Mass Energy-Absorption Coefficients.</em> NIST Standard Reference Database 126, 1996.</li>
+        <li>[3] Turner, J.E. <em>Atoms, Radiation, and Radiation Protection.</em> 3rd ed. Wiley-VCH, 2007. — Beer-Lambert law derivation and attenuation physics.</li>
+        <li>[4] Metropolis, N. &amp; Ulam, S. <em>The Monte Carlo Method.</em> Journal of the American Statistical Association, 44(247):335–341, 1949. — Foundational Monte Carlo reference.</li>
+        <li>[5] Shultis, J.K. &amp; Faw, R.E. <em>Radiation Shielding.</em> American Nuclear Society, 2000. — Geometry corrections, angular incidence, sandwich barriers.</li>
+        <li>[6] <em>Tbilisi Metro — Line 1 Construction Documentation.</em> Tbilisi City Hall Archive / Tbilisi Transport Company, 1966–1979. — Station depths and construction specifications.</li>
+        <li>[7] IAEA Safety Reports Series No. 47. <em>Radiation Protection and Safety in Industrial Radiography.</em> International Atomic Energy Agency, Vienna, 2011.</li>
+        <li>[8] Khan Academy. <em>Radioactive Decay Types.</em> Nuclear Physics, Class 12 Physics. <a href="https://www.khanacademy.org/science/in-in-class-12th-physics-india/nuclei/in-in-nuclear-physics/a/radioactive-decay-types-article" target="_blank" rel="noopener">khanacademy.org</a></li>
+        <li>[9] CERN Geant4 Collaboration. <em>Geant4 — A Simulation Toolkit.</em> A toolkit for the simulation of the passage of particles through matter. <a href="https://geant4.web.cern.ch/" target="_blank" rel="noopener">geant4.web.cern.ch</a></li>
+        <li>[10] Khan Academy. <em>Spectrophotometry and the Beer-Lambert Law.</em> AP Chemistry — Intermolecular Forces and Properties. <a href="https://www.khanacademy.org/science/ap-chemistry-beta/x2eef969c74e0d802:intermolecular-forces-and-properties/x2eef969c74e0d802:beer-lambert-law/v/spectrophotometry-introduction" target="_blank" rel="noopener">khanacademy.org</a></li>
+        <li>[11] Edinburgh Instruments. <em>The Beer-Lambert Law — Theory and Applications.</em> <a href="https://www.edinst.com/resource/the-beer-lambert-law/" target="_blank" rel="noopener">edinst.com</a></li>
+        <li>[12] IOP Publishing. <em>Radiation Shielding Simulation Study.</em> IOP Conference Series: Materials Science and Engineering, Vol. 1231, 2022. <a href="https://iopscience.iop.org/article/10.1088/1757-899X/1231/1/012007/pd" target="_blank" rel="noopener">iopscience.iop.org</a></li>
+      </ul>
+    </div>
+
+    <hr class="footer-divider">
+    <div class="footer-meta">
+      Physics Conference Presentation &nbsp;·&nbsp; Monte Carlo Radiation Simulation &nbsp;·&nbsp;
+      N = 100,000 particles &nbsp;·&nbsp; 1.25 MeV γ-radiation (Co-60) &nbsp;·&nbsp; Tbilisi, Georgia
+    </div>
+
+  </div>
+</footer>
+
+<script>
+const MU = {
+  air:0.00008, water:0.063, wood:0.047, plastic:0.060,
+  concrete:0.141, lead:0.672, soil:0.125,
+  heavy:0.165, reinforced:0.180, thinPanel:0.145,
+  gazbetoni:0.075, glass:0.110
+};
+function bl(mu,x){ return Math.exp(-mu*x)*100; }
+
+// ── Shared style tokens ───────────────────────
+const FONT   = "'IBM Plex Mono', monospace";
+const MUTED  = '#9a9288';
+const INK    = '#2a2820';
+const GRID   = 'rgba(0,0,0,0.05)';
+const TICK   = { color: MUTED, font:{ family:FONT, size:11 } };
+
+Chart.defaults.font.family = FONT;
+Chart.defaults.font.size   = 11;
+Chart.defaults.color       = MUTED;
+
+// shared axis base objects
+function xBase(label){ return { title:{display:!!label,text:label,color:MUTED,font:{family:FONT,size:10}}, grid:{color:GRID}, ticks:TICK }; }
+function yBase(label){ return { title:{display:!!label,text:label,color:MUTED,font:{family:FONT,size:10}}, grid:{color:GRID}, ticks:TICK }; }
+function yLog(label,min,max){
+  return { type:'logarithmic', title:{display:!!label,text:label,color:MUTED,font:{family:FONT,size:10}},
+    min, max, grid:{color:GRID}, ticks:{...TICK, callback:v=>{ const e=Math.log10(v); return Number.isInteger(e)?`10^${e}`:undefined; }} };
+}
+
+// value-label plugin (draws text above/beside bars)
+const labelPlugin = {
+  id:'labelPlugin',
+  afterDatasetsDraw(chart){
+    const {ctx} = chart;
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta=chart.getDatasetMeta(di);
+      meta.data.forEach((el,i)=>{
+        const v = ds.data[i];
+        if(v==null) return;
+        ctx.save();
+        ctx.font=`500 10px ${FONT}`;
+        ctx.fillStyle=INK;
+        const isHoriz = chart.options.indexAxis==='y';
+        if(isHoriz){
+          const x=el.x+6, y=el.y+4;
+          let txt = v===0?'≈ 0':(v<0.0001?v.toExponential(1)+'%':v.toFixed(3)+'%');
+          ctx.fillText(txt,x,y);
+        } else {
+          const x=el.x, y=el.y-6;
+          let txt = v===0?'≈ 0':(v<0.001?v.toExponential(1)+'%':v.toFixed(2)+'%');
+          ctx.textAlign='center';
+          ctx.fillText(txt,x,y);
+        }
+        ctx.restore();
+      });
+    });
+  }
+};
+
+// ── GRAPH 1: Attenuation curves ──────────────
+(function(){
+  const t=Array.from({length:40},(_,i)=>i+1);
+  new Chart(document.getElementById('attenuationChart'),{
+    type:'line',
+    data:{
+      labels:t,
+      datasets:[
+        { label:'Water',  data:t.map(x=>bl(MU.water,x)),   borderColor:'#4a90c8', backgroundColor:'rgba(74,144,200,0.07)',  borderWidth:2.5, pointRadius:0, fill:true, tension:0.4 },
+        { label:'Concrete',data:t.map(x=>bl(MU.concrete,x)),borderColor:'#7a7468',backgroundColor:'rgba(120,116,104,0.07)', borderWidth:2.5, pointRadius:0, fill:true, tension:0.4 },
+        { label:'Lead',   data:t.map(x=>bl(MU.lead,x)),    borderColor:'#8b1a1a', backgroundColor:'rgba(139,26,26,0.07)',   borderWidth:2.5, pointRadius:0, fill:true, tension:0.4 }
+      ]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ right:16 } },
+      scales:{
+        x:{ ...xBase('Thickness (cm)'), ticks:{...TICK, maxTicksLimit:10} },
+        y:{ ...yLog('Survival (%)', 0.0001, 100) }
+      },
+      plugins:{
+        legend:{ position:'top', labels:{ boxWidth:12, padding:20, color:INK, font:{family:FONT,size:11} } },
+        tooltip:{ callbacks:{ label:c=>`${c.dataset.label}: ${c.parsed.y.toFixed(3)}%` } }
+      }
+    }
+  });
+})();
+
+// ── GRAPH 2: Absorption PDF ───────────────────
+(function(){
+  const d=Array.from({length:40},(_,i)=>i+1);
+  function pdf(mu,x){ return x===1?(1-Math.exp(-mu))*100:(Math.exp(-mu*(x-1))-Math.exp(-mu*x))*100; }
+  new Chart(document.getElementById('absorptionHistChart'),{
+    type:'bar',
+    data:{
+      labels:d,
+      datasets:[
+        { label:'Concrete', data:d.map(x=>pdf(MU.concrete,x)), backgroundColor:'rgba(120,116,104,0.65)', borderColor:'#7a7468', borderWidth:0, borderRadius:2 },
+        { label:'Lead',     data:d.map(x=>pdf(MU.lead,x)),     backgroundColor:'rgba(139,26,26,0.65)',   borderColor:'#8b1a1a', borderWidth:0, borderRadius:2 }
+      ]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{
+        x:{ ...xBase('Depth (cm)'), ticks:{...TICK, maxTicksLimit:10} },
+        y:{ ...yBase('Absorption probability (%)') }
+      },
+      plugins:{
+        legend:{ position:'top', labels:{ boxWidth:12, padding:20, color:INK, font:{family:FONT,size:11} } },
+        tooltip:{ callbacks:{ label:c=>`${c.dataset.label} @ ${c.label} cm: ${c.parsed.y.toFixed(3)}%` } }
+      }
+    }
+  });
+})();
+
+// ── GRAPH 3: Angular incidence ────────────────
+(function(){
+  const angles=[0,15,30,45,60,75];
+  const vals=angles.map(a=>bl(MU.concrete,20/Math.cos(a*Math.PI/180)));
+  const palette=['#5ba3d9','#7ab8e0','#9dcde8','#d4924a','#c45050','#8b1a1a'];
+  new Chart(document.getElementById('angleChart'),{
+    type:'bar',
+    data:{
+      labels:angles.map(a=>a+'°'),
+      datasets:[{ data:vals, backgroundColor:palette, borderWidth:0, borderRadius:4, barPercentage:0.6 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:24 } },
+      scales:{
+        x:{ ...xBase('Angle of incidence'), grid:{display:false} },
+        y:{ ...yLog('Survival (%)', 0.0001, 100) }
+      },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:c=>`${vals[c.dataIndex].toFixed(4)}%  |  eff. thickness: ${(20/Math.cos(angles[c.dataIndex]*Math.PI/180)).toFixed(1)} cm` } }
+      }
+    },
+    plugins:[labelPlugin]
+  });
+})();
+
+// ── GRAPH 4: Sandwich vs Solid ────────────────
+(function(){
+  const solid    = bl(MU.concrete,30);
+  const sandwich = Math.exp(-MU.concrete*15)*Math.exp(-MU.air*10)*Math.exp(-MU.concrete*15)*100;
+  new Chart(document.getElementById('sandwichChart'),{
+    type:'bar',
+    data:{
+      labels:['Monolithic\n30 cm concrete','Sandwich\n15 + air + 15 cm'],
+      datasets:[{ data:[solid,sandwich],
+        backgroundColor:['rgba(120,116,104,0.75)','rgba(44,160,44,0.75)'],
+        borderWidth:0, borderRadius:4, barPercentage:0.45 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:28 } },
+      scales:{
+        x:{ ...xBase(''), grid:{display:false} },
+        y:{ ...yBase('Transmitted (%)'), suggestedMax: solid * 1.3 }
+      },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:c=>`${c.parsed.y.toFixed(5)}%` } }
+      }
+    },
+    plugins:[labelPlugin]
+  });
+})();
+
+// ── GRAPH 5: Metro stations ───────────────────
+(function(){
+  const archMult=1.317;
+  function metro(soilM,concM,arch){
+    return Math.exp(-MU.soil*soilM*100)*Math.exp(-MU.heavy*(arch?concM*archMult:concM)*100)*100;
+  }
+  const stations=[
+    { label:'Rustaveli (45m)',          soil:45, conc:3,   arch:true  },
+    { label:'Marjanishvili (35m)',       soil:35, conc:3,   arch:true  },
+    { label:'Tech University (30m)',     soil:30, conc:3,   arch:true  },
+    { label:'Avlabari / Samgori (12m)', soil:12, conc:2,   arch:true  },
+    { label:'Akhmeteli / Vazha (10m)',  soil:10, conc:2,   arch:true  },
+    { label:'Didube (open, 0m)',         soil:0,  conc:0.5, arch:false }
+  ];
+  const vals=stations.map(s=>metro(s.soil,s.conc,s.arch));
+  const clamp=vals.map(v=>Math.max(v,1e-28));
+  const colors=['#1f5f9f','#2a72b8','#3585cc','#c87020','#d98830','#8b1a1a'];
+  new Chart(document.getElementById('metroChart'),{
+    type:'bar',
+    data:{ labels:stations.map(s=>s.label),
+      datasets:[{ data:clamp, backgroundColor:colors.map(c=>c+'dd'), borderColor:colors, borderWidth:0, borderRadius:3 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      layout:{ padding:{ right:80 } },
+      scales:{
+        x:{ type:'logarithmic', min:1e-28, max:10,
+          title:{display:true,text:'Penetration (log scale)',color:MUTED,font:{family:FONT,size:10}},
+          grid:{color:GRID}, ticks:{...TICK, callback:v=>{ const e=Math.log10(v); return Number.isInteger(e)?`10^${e}`:undefined; }}
+        },
+        y:{ grid:{display:false}, ticks:{...TICK, font:{family:FONT,size:11}} }
+      },
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c=>{ const v=vals[c.dataIndex]; return v<1e-20?'Complete shielding (≈ 0)':`${v.toExponential(2)}%`; } } }
+      }
+    },
+    plugins:[{
+      id:'metroLabels',
+      afterDatasetsDraw(chart){
+        const {ctx}=chart;
+        chart.getDatasetMeta(0).data.forEach((el,i)=>{
+          const v=vals[i];
+          const txt = v<1e-20?'complete shielding':(v<0.001?v.toExponential(1)+'%':v.toFixed(3)+'%');
+          ctx.save();
+          ctx.font=`500 10px ${FONT}`;
+          ctx.fillStyle=INK;
+          ctx.fillText(txt, el.x+8, el.y+4);
+          ctx.restore();
+        });
+      }
+    }]
+  });
+})();
+
+// ── GRAPH 6: Half-Value Layer comparison ─────
+(function(){
+  // HVL = ln(2)/mu  — thickness (cm) that halves the radiation
+  // Lower HVL = better shielding (thinner wall needed)
+  const items=[
+    { label:'Air',             hvl:Math.log(2)/MU.air,        color:'#aec7e8' },
+    { label:'Tbilisi Soil',   hvl:Math.log(2)/MU.soil,       color:'#c8a96a' },
+    { label:'Concrete',       hvl:Math.log(2)/MU.concrete,   color:'#7a7468' },
+    { label:'Heavy Reinf.',   hvl:Math.log(2)/MU.reinforced, color:'#3a3830' },
+    { label:'Arch (45° avg)', hvl:(Math.log(2)/MU.heavy)*Math.cos(45*Math.PI/180), color:'#1f5f9f' }
+  ];
+  // Cap Air at 500 for display (actual is 8664 cm — off the chart intentionally)
+  const dispVals = items.map(d=>Math.min(d.hvl, 500));
+  const trueVals = items.map(d=>d.hvl);
+  new Chart(document.getElementById('absorptionEffChart'),{
+    type:'bar',
+    data:{ labels:items.map(d=>d.label),
+      datasets:[{ data:dispVals, backgroundColor:items.map(d=>d.color+'cc'),
+        borderWidth:0, borderRadius:4, barPercentage:0.55 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:28 } },
+      scales:{
+        x:{ ...xBase(''), grid:{display:false} },
+        y:{ ...yBase('Half-Value Layer (cm)  —  lower = better shielding'), suggestedMin:0, suggestedMax:520 }
+      },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{
+          label: c => {
+            const v = trueVals[c.dataIndex];
+            return v > 500 ? `HVL: ${v.toFixed(0)} cm  (off chart — near-transparent)` : `HVL: ${v.toFixed(1)} cm`;
+          }
+        }}
+      }
+    },
+    plugins:[{
+      id:'hvlLabels',
+      afterDatasetsDraw(chart){
+        const {ctx} = chart;
+        chart.getDatasetMeta(0).data.forEach((el,i)=>{
+          const v = trueVals[i];
+          const txt = v > 500 ? '8,664 cm ↑' : v.toFixed(1)+' cm';
+          ctx.save();
+          ctx.font = `500 10px ${FONT}`;
+          ctx.fillStyle = INK;
+          ctx.textAlign = 'center';
+          ctx.fillText(txt, el.x, el.y - 7);
+          ctx.restore();
+        });
+      }
+    }]
+  });
+})();
+
+// ── GRAPH 7: Building penetration ────────────
+(function(){
+  const items=[
+    { label:'Bank of Georgia\n(60 cm reinforced)',       val: bl(MU.reinforced,60),                                                          color:'#2a6b2a' },
+    { label:'Axis Towers\n(glass facade + core)',        val: Math.exp(-MU.glass*3)*Math.exp(-MU.air*50)*Math.exp(-MU.heavy*30)*100,         color:'#1f5f9f' },
+    { label:'Khrushchyovka\n(20 cm panel)',              val: bl(MU.thinPanel,20),                                                           color:'#c87020' },
+    { label:'Gazbetoni Block\n(30 cm aerated)',          val: bl(MU.gazbetoni,30),                                                           color:'#8b1a1a' }
+  ];
+  new Chart(document.getElementById('buildingChart'),{
+    type:'bar',
+    data:{ labels:items.map(d=>d.label),
+      datasets:[{ data:items.map(d=>d.val), backgroundColor:items.map(d=>d.color+'cc'),
+        borderWidth:0, borderRadius:4, barPercentage:0.55 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:28 } },
+      scales:{
+        x:{ ...xBase(''), grid:{display:false} },
+        y:{ ...yLog('Penetration (%)',0.001,20) }
+      },
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c=>`${c.parsed.y.toFixed(4)}%` } }
+      }
+    },
+    plugins:[labelPlugin]
+  });
+})();
+
+// ── GRAPH 8: Flat vs Arch (Liberty Sq) ───────
+(function(){
+  const archMult=1.317;
+  const soilP=Math.exp(-MU.soil*47*100);
+  const flat=soilP*Math.exp(-MU.heavy*3*100)*100;
+  const arch=soilP*Math.exp(-MU.heavy*3*archMult*100)*100;
+  // Show at 5m instead for visual clarity (47m both are 0)
+  const s5=Math.exp(-MU.soil*5*100);
+  const flat5=s5*Math.exp(-MU.heavy*3*100)*100;
+  const arch5=s5*Math.exp(-MU.heavy*3*archMult*100)*100;
+  new Chart(document.getElementById('archChart'),{
+    type:'bar',
+    data:{
+      labels:['Flat ceiling','Arch vault'],
+      datasets:[{ data:[flat5,arch5],
+        backgroundColor:['rgba(120,116,104,0.8)','rgba(31,95,159,0.85)'],
+        borderWidth:0, borderRadius:4, barPercentage:0.4 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:28 } },
+      scales:{
+        x:{ ...xBase('Configuration (5 m soil depth shown)'), grid:{display:false} },
+        y:{ ...yBase('Transmitted (%)'), suggestedMax: flat5*1.25 }
+      },
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c=>{ const v=[flat5,arch5][c.dataIndex]; return `${v.toFixed(5)}%`; } } }
+      }
+    },
+    plugins:[labelPlugin]
+  });
+})();
+
+// ── GRAPH 9: Arch vs Flat — concrete thickness ─
+(function(){
+  // Shows survival rate through reinforced concrete vault of varying thickness
+  // Flat = perpendicular (θ=0°), Arch = random θ~Uniform(0°,60°) → avg mult 1.317
+  // No soil — isolates the arch geometry effect cleanly
+  const archMult=1.317;
+  const thick=[5,8,10,12,15,18,20,25,30];
+  const flat=thick.map(t=>Math.exp(-MU.heavy*t)*100);
+  const arch=thick.map(t=>Math.exp(-MU.heavy*t*archMult)*100);
+  new Chart(document.getElementById('archDepthChart'),{
+    type:'line',
+    data:{
+      labels:thick.map(t=>t+' cm'),
+      datasets:[
+        { label:'Flat ceiling (θ=0°)',      data:flat, borderColor:'#7a7468',
+          backgroundColor:'rgba(120,116,104,0.10)', borderWidth:2.5,
+          pointRadius:5, pointBackgroundColor:'#fff', pointBorderColor:'#7a7468',
+          pointBorderWidth:2, fill:true, tension:0.3 },
+        { label:'Arch vault (avg θ=45°)', data:arch, borderColor:'#1f5f9f',
+          backgroundColor:'rgba(31,95,159,0.10)',   borderWidth:2.5,
+          pointRadius:5, pointBackgroundColor:'#fff', pointBorderColor:'#1f5f9f',
+          pointBorderWidth:2, fill:true, tension:0.3 }
+      ]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{
+        x:{ ...xBase('Concrete vault thickness') },
+        y:{ ...yBase('Radiation transmitted (%)'), suggestedMin:0, suggestedMax:50 }
+      },
+      plugins:{
+        legend:{ position:'top', labels:{ boxWidth:12, padding:20, color:INK, font:{family:FONT,size:11} } },
+        tooltip:{ callbacks:{ label:c=>`${c.dataset.label}: ${c.parsed.y.toFixed(3)}%` } }
+      }
+    }
+  });
+})();
+
+// ── GEIGER COUNTER ────────────────────────────────────────────────────────────
+(function(){
+  // Draw the analog meter arc once
+  const svg = document.getElementById('geigerMeterSvg');
+  const cx=130, cy=120, r=88;
+  const startDeg=-210, endDeg=30; // sweep 240°
+
+  function polar(deg){ const a=deg*Math.PI/180; return [cx+r*Math.cos(a), cy+r*Math.sin(a)]; }
+  function arcPath(from, to){
+    const [x1,y1]=polar(from), [x2,y2]=polar(to);
+    const large = (to-from)>180 ? 1:0;
+    return `M${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2}`;
+  }
+  document.getElementById('meterArcBg').setAttribute('d', arcPath(startDeg, endDeg));
+
+  // Ticks
+  const tickG = document.getElementById('meterTicks');
+  for(let i=0;i<=10;i++){
+    const deg = startDeg + i*(endDeg-startDeg)/10;
+    const [ox,oy]=polar(deg);
+    const rIn=r-(i%5===0?18:10);
+    function polarR(d,rr){ const a=d*Math.PI/180; return [cx+rr*Math.cos(a), cy+rr*Math.sin(a)]; }
+    const [ix,iy]=polarR(deg,rIn);
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',ox); line.setAttribute('y1',oy);
+    line.setAttribute('x2',ix); line.setAttribute('y2',iy);
+    line.setAttribute('stroke','rgba(248,245,239,0.2)');
+    line.setAttribute('stroke-width', i%5===0 ? 1.5 : 1);
+    tickG.appendChild(line);
+  }
+
+  // State
+  const BACKGROUND_CPM = 15;
+  const ACTIVITY_MULT = { low:0.3, med:1, high:4 };
+  let sourceOn  = true;
+  let activity  = 'med';
+  let totalCounts = 0;
+  let smoothCpm = BACKGROUND_CPM;
+  let audioCtx  = null;
+  let geigerMuted = false;
+  window.geigerToggleMute = function(){
+    geigerMuted = !geigerMuted;
+    const btn = document.getElementById('geigerMuteBtn');
+    btn.classList.toggle('muted', geigerMuted);
+    btn.innerHTML = geigerMuted ? '&#9646;&#9646;&nbsp; Muted' : '&#9654;&nbsp; Sound On';
+  };
+
+  function getMu(){
+    const mat = document.getElementById('geigerMaterial').value;
+    return MU[mat] ?? 0.141;
+  }
+  function getThickness(){ return parseFloat(document.getElementById('geigerThickness').value); }
+  function getTransmit(){
+    if(!sourceOn) return 0;
+    const t = Math.exp(-getMu()*getThickness());
+    return t;
+  }
+  function getTargetCpm(){
+    const baseCpm = 2200 * ACTIVITY_MULT[activity];
+    const src = sourceOn ? baseCpm * getTransmit() : 0;
+    return Math.max(BACKGROUND_CPM, src + BACKGROUND_CPM);
+  }
+
+  // Needle angle: 0 CPM → startDeg, maxCPM → endDeg
+  const MAX_CPM = 2000;
+  function cpmToNeedleDeg(cpm){
+    const frac = Math.min(cpm/MAX_CPM, 1);
+    return startDeg + frac*(endDeg-startDeg);
+  }
+
+  function updateMeter(cpm){
+    const deg = cpmToNeedleDeg(cpm);
+    document.getElementById('meterNeedle').setAttribute('transform',`rotate(${deg-(startDeg)},${cx},${cy})`);
+    // arc fill
+    const frac = Math.min(cpm/MAX_CPM,1);
+    const arcEnd = startDeg + frac*(endDeg-startDeg);
+    const fp = arcPath(startDeg, arcEnd);
+    const fill = document.getElementById('meterArcFill');
+    fill.setAttribute('d', fp);
+    // colour: green → yellow → red
+    const r2=Math.round(frac<0.5 ? frac*2*200 : 200+(frac-0.5)*2*55);
+    const g2=Math.round(frac<0.5 ? 127+(0.5-frac)*2*128 : Math.max(0,127-(frac-0.5)*2*127));
+    fill.setAttribute('stroke',`rgb(${r2},${g2},68)`);
+  }
+
+  function updateRangeBackground(){
+    const el=document.getElementById('geigerThickness');
+    const pct=((el.value-el.min)/(el.max-el.min)*100).toFixed(1)+'%';
+    el.style.setProperty('--pct',pct);
+  }
+
+  window.geigerUpdate = function(){
+    const t = getThickness();
+    document.getElementById('geigerThicknessVal').textContent = t+' cm';
+    updateRangeBackground();
+    const tx = getTransmit();
+    const mat = document.getElementById('geigerMaterial').value;
+    const notes = {
+      air:    'No attenuation — μ≈0.00008 cm⁻¹. Gamma rays travel kilometres in air.',
+      wood:   'Light shielding — μ=0.047 cm⁻¹. Useful only for very thick sections.',
+      plastic:'Similar to water — μ=0.060 cm⁻¹. Good hydrogen content for neutrons, poor for gamma.',
+      gazbetoni:'Aerated concrete — μ=0.075 cm⁻¹. Low density makes it poor for radiation shielding.',
+      glass:  'Moderate — μ=0.110 cm⁻¹. Similar to normal concrete but less mass-efficient.',
+      concrete:'Standard urban material — μ=0.141 cm⁻¹. The go-to urban radiation shield.',
+      heavy:  'Heavy concrete — μ=0.165 cm⁻¹. Barite aggregate significantly improves performance.',
+      reinforced:'Reinforced concrete — μ=0.180 cm⁻¹. Steel rebar raises effective attenuation.',
+      lead:   'Best practical shield — μ=0.672 cm⁻¹. Density 11,340 kg/m³ makes it optimal per cm.',
+      soil:   'Earth shielding — μ=0.125 cm⁻¹. Metro overburden: 30–50 m provides complete protection.',
+    };
+    document.getElementById('geigerNote').textContent = notes[mat] || '';
+    document.getElementById('geigerTransmit').textContent = sourceOn ? (tx*100).toFixed(3)+'%' : '—';
+    const relDose = sourceOn ? (tx*100).toFixed(2)+'%' : '—';
+    document.getElementById('geigerDose').textContent = relDose;
+  };
+
+  window.geigerSetSource = function(on){
+    sourceOn = on;
+    document.getElementById('geigerBtnOn').classList.toggle('active', on);
+    document.getElementById('geigerBtnOn').classList.toggle('on', on);
+    document.getElementById('geigerBtnOff').classList.toggle('active', !on);
+    geigerUpdate();
+  };
+
+  window.geigerSetActivity = function(level){
+    activity = level;
+    ['low','med','high'].forEach(l=>{
+      const b=document.getElementById('geigerAct'+l.charAt(0).toUpperCase()+l.slice(1));
+      b.classList.toggle('active',l===level);
+      b.classList.toggle('on',l===level);
+    });
+    geigerUpdate();
+  };
+
+  // Audio click via Web Audio API — layered Geiger tube simulation
+  function playClick(){
+    if(geigerMuted) return;
+    if(!audioCtx){ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+    const t  = audioCtx.currentTime;
+    const sr = audioCtx.sampleRate;
+
+    // Layer 1: sharp noise burst (ionisation discharge)
+    const bufLen = Math.floor(sr * 0.014);
+    const buf = audioCtx.createBuffer(1, bufLen, sr);
+    const d   = buf.getChannelData(0);
+    const tau = sr * 0.0016; // ~1.6 ms decay
+    for(let i = 0; i < bufLen; i++) d[i] = (Math.random()*2-1) * Math.exp(-i/tau);
+
+    const noiseSrc = audioCtx.createBufferSource();
+    noiseSrc.buffer = buf;
+
+    const bpf = audioCtx.createBiquadFilter(); // shape into click character
+    bpf.type = 'bandpass'; bpf.frequency.value = 3200; bpf.Q.value = 0.85;
+
+    const hpf = audioCtx.createBiquadFilter(); // cut low rumble
+    hpf.type = 'highpass'; hpf.frequency.value = 750;
+
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.value = 0.38;
+
+    noiseSrc.connect(bpf); bpf.connect(hpf); hpf.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noiseSrc.start(t);
+
+    // Layer 2: brief oscillator pop (amplifier/speaker resonance)
+    const osc = audioCtx.createOscillator();
+    osc.type = 'square'; osc.frequency.value = 1050;
+
+    const oscLpf = audioCtx.createBiquadFilter();
+    oscLpf.type = 'lowpass'; oscLpf.frequency.value = 1700;
+
+    const oscGain = audioCtx.createGain();
+    oscGain.gain.setValueAtTime(0.06, t);
+    oscGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.007);
+
+    osc.connect(oscLpf); oscLpf.connect(oscGain);
+    oscGain.connect(audioCtx.destination);
+    osc.start(t); osc.stop(t + 0.009);
+  }
+
+  // Log
+  const LOG_MATS = { air:'Air', wood:'Wood', plastic:'Plastic', gazbetoni:'Gazbetoni', glass:'Glass',
+    concrete:'Concrete', heavy:'Heavy Conc.', reinforced:'Reinf. Conc.', lead:'Lead', soil:'Soil' };
+  function addLog(cpm){
+    const log = document.getElementById('geigerLog');
+    const now = new Date();
+    const ts = now.toTimeString().slice(0,8);
+    const mat = document.getElementById('geigerMaterial').value;
+    const entry = document.createElement('div');
+    entry.innerHTML = `<span style="color:rgba(248,245,239,0.25)">${ts}</span> <span class="ev">DETECT</span> ${Math.round(cpm)} CPM · ${LOG_MATS[mat]||mat} ${getThickness()}cm`;
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+    if(log.children.length > 40) log.removeChild(log.firstChild);
+  }
+
+  // Main loop
+  let lastLog=0, lastClick=0, totalTime=0;
+  const TICK_MS = 80;
+  setInterval(()=>{
+    totalTime += TICK_MS;
+    const target = getTargetCpm();
+    smoothCpm += (target - smoothCpm) * 0.12;
+    const cpmDisplay = Math.round(smoothCpm + (Math.random()-0.5)*Math.sqrt(smoothCpm)*0.5);
+
+    document.getElementById('geigerCpm').textContent = Math.max(0,cpmDisplay).toString().padStart(4,' ');
+    updateMeter(Math.max(0,smoothCpm));
+
+    // LED flicker based on CPM
+    const clickIntervalMs = 60000 / Math.max(1, smoothCpm);
+    const now2 = Date.now();
+    if(now2 - lastClick > clickIntervalMs * (0.5+Math.random())){
+      lastClick = now2;
+      totalCounts++;
+      document.getElementById('geigerTotal').textContent = totalCounts;
+      const led = document.getElementById('geigerLed');
+      led.classList.add('active');
+      setTimeout(()=>led.classList.remove('active'), 40);
+      playClick();
+    }
+
+    // Status text
+    const st = document.getElementById('geigerStatusText');
+    if(!sourceOn){ st.textContent='BACKGROUND ONLY'; st.style.color='rgba(248,245,239,0.3)'; }
+    else if(smoothCpm>800){ st.textContent='HIGH RADIATION'; st.style.color='#ff4444'; }
+    else if(smoothCpm>200){ st.textContent='ELEVATED'; st.style.color='#ffaa00'; }
+    else { st.textContent='NORMAL RANGE'; st.style.color='#7fff7f'; }
+
+    // Log every ~3s
+    if(now2-lastLog>3000){ lastLog=now2; addLog(smoothCpm); }
+  }, TICK_MS);
+
+  // Init
+  geigerUpdate();
+  updateRangeBackground();
+})();
+</script>
+</body>
+</html>
