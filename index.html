@@ -1388,12 +1388,12 @@ const labelPlugin = {
   let smoothCpm = BACKGROUND_CPM;
   let audioCtx  = null;
   let geigerMuted = false;
-  function geigerToggleMute(){
+  window.geigerToggleMute = function(){
     geigerMuted = !geigerMuted;
     const btn = document.getElementById('geigerMuteBtn');
     btn.classList.toggle('muted', geigerMuted);
     btn.innerHTML = geigerMuted ? '&#9646;&#9646;&nbsp; Muted' : '&#9654;&nbsp; Sound On';
-  }
+  };
 
   function getMu(){
     const mat = document.getElementById('geigerMaterial').value;
