@@ -1388,12 +1388,11 @@ const labelPlugin = {
   let smoothCpm = BACKGROUND_CPM;
   let audioCtx  = null;
   let geigerMuted = false;
-  function geigerSetMute(mute){
-    geigerMuted = mute;
-    document.getElementById('geigerSndOn').classList.toggle('active', !mute);
-    document.getElementById('geigerSndOn').classList.toggle('on', !mute);
-    document.getElementById('geigerSndOff').classList.toggle('active', mute);
-    document.getElementById('geigerSndOff').classList.toggle('on', mute);
+  function geigerToggleMute(){
+    geigerMuted = !geigerMuted;
+    const btn = document.getElementById('geigerMuteBtn');
+    btn.classList.toggle('muted', geigerMuted);
+    btn.innerHTML = geigerMuted ? '&#9646;&#9646;&nbsp; Muted' : '&#9654;&nbsp; Sound On';
   }
 
   function getMu(){
@@ -1482,19 +1481,50 @@ const labelPlugin = {
     geigerUpdate();
   };
 
-  // Audio click via Web Audio API
+  // Audio click via Web Audio API — layered Geiger tube simulation
   function playClick(){
     if(geigerMuted) return;
     if(!audioCtx){ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
-    const buf = audioCtx.createBuffer(1,audioCtx.sampleRate*0.003,audioCtx.sampleRate);
-    const d = buf.getChannelData(0);
-    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/60);
-    const src = audioCtx.createBufferSource();
-    src.buffer = buf;
-    const gain = audioCtx.createGain();
-    gain.gain.value = 0.18;
-    src.connect(gain); gain.connect(audioCtx.destination);
-    src.start();
+    const t  = audioCtx.currentTime;
+    const sr = audioCtx.sampleRate;
+
+    // Layer 1: sharp noise burst (ionisation discharge)
+    const bufLen = Math.floor(sr * 0.014);
+    const buf = audioCtx.createBuffer(1, bufLen, sr);
+    const d   = buf.getChannelData(0);
+    const tau = sr * 0.0016; // ~1.6 ms decay
+    for(let i = 0; i < bufLen; i++) d[i] = (Math.random()*2-1) * Math.exp(-i/tau);
+
+    const noiseSrc = audioCtx.createBufferSource();
+    noiseSrc.buffer = buf;
+
+    const bpf = audioCtx.createBiquadFilter(); // shape into click character
+    bpf.type = 'bandpass'; bpf.frequency.value = 3200; bpf.Q.value = 0.85;
+
+    const hpf = audioCtx.createBiquadFilter(); // cut low rumble
+    hpf.type = 'highpass'; hpf.frequency.value = 750;
+
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.value = 0.38;
+
+    noiseSrc.connect(bpf); bpf.connect(hpf); hpf.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noiseSrc.start(t);
+
+    // Layer 2: brief oscillator pop (amplifier/speaker resonance)
+    const osc = audioCtx.createOscillator();
+    osc.type = 'square'; osc.frequency.value = 1050;
+
+    const oscLpf = audioCtx.createBiquadFilter();
+    oscLpf.type = 'lowpass'; oscLpf.frequency.value = 1700;
+
+    const oscGain = audioCtx.createGain();
+    oscGain.gain.setValueAtTime(0.06, t);
+    oscGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.007);
+
+    osc.connect(oscLpf); oscLpf.connect(oscGain);
+    oscGain.connect(audioCtx.destination);
+    osc.start(t); osc.stop(t + 0.009);
   }
 
   // Log
