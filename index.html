@@ -176,7 +176,19 @@
   .building-desc { padding:18px 20px; font-size:14px; color:var(--ink-light); line-height:1.55; border-right:1px solid var(--border); }
   .building-rate { padding:18px 20px; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:500; white-space:nowrap; text-align:right; }
 
-  footer { background:var(--paper-dark); padding:40px 60px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-muted); letter-spacing:1px; }
+  footer { background:var(--paper-dark); padding:56px 60px 48px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-muted); letter-spacing:1px; }
+  .footer-inner { max-width:840px; margin:0 auto; }
+  .footer-section { margin-bottom:28px; }
+  .footer-label { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:rgba(248,245,239,0.25); margin-bottom:8px; }
+  .footer-names { font-size:13px; color:rgba(248,245,239,0.65); letter-spacing:0.5px; display:flex; gap:32px; flex-wrap:wrap; }
+  .footer-supervisor { font-size:12px; color:rgba(248,245,239,0.5); }
+  .footer-sources { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; }
+  .footer-sources li { color:rgba(248,245,239,0.4); font-size:10px; letter-spacing:0.5px; line-height:1.6; }
+  .footer-sources a { color:rgba(248,245,239,0.45); text-decoration:none; border-bottom:1px solid rgba(248,245,239,0.15); }
+  .footer-sources a:hover { color:rgba(248,245,239,0.75); border-bottom-color:rgba(248,245,239,0.5); }
+  .footer-divider { border:none; border-top:1px solid rgba(248,245,239,0.07); margin:24px 0; }
+  .footer-meta { text-align:center; font-size:10px; color:rgba(248,245,239,0.25); letter-spacing:1px; }
+  @media(max-width:640px){ footer { padding:48px 24px 36px; } .footer-names { flex-direction:column; gap:8px; } }
 
   /* ── Geiger Counter ── */
   .geiger-section { background:var(--ink); color:var(--paper); padding:64px 60px; }
@@ -918,9 +930,48 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
 </div>
 
 <footer>
-  Physics Conference Presentation &nbsp;·&nbsp; Monte Carlo Radiation Simulation &nbsp;·&nbsp;
-  Materials: NIST XCOM Database &nbsp;·&nbsp; N = 100,000 particles &nbsp;·&nbsp; 1.25 MeV γ-radiation &nbsp;·&nbsp;
-  Tbilisi Case Studies: Metro Line 1 (1966) &amp; Urban Architecture Survey
+  <div class="footer-inner">
+
+    <div class="footer-section">
+      <div class="footer-label">Authors</div>
+      <div class="footer-names">
+        <span>Lasha-Giorgi Mazanashvili</span>
+        <span>Giorgi Arveladze</span>
+      </div>
+    </div>
+
+    <div class="footer-section">
+      <div class="footer-label">Supervisor</div>
+      <div class="footer-supervisor">Natia Porchkidze</div>
+    </div>
+
+    <div class="footer-section">
+      <div class="footer-label">Source Code</div>
+      <div class="footer-supervisor">
+        <a href="https://github.com/Lasha-Giorgi707" class="footer-sources" style="color:rgba(248,245,239,0.5);text-decoration:none;border-bottom:1px solid rgba(248,245,239,0.15);" target="_blank" rel="noopener">github.com/Lasha-Giorgi707</a>
+      </div>
+    </div>
+
+    <div class="footer-section">
+      <div class="footer-label">References</div>
+      <ul class="footer-sources">
+        <li>[1] Berger, M.J., Hubbell, J.H., Seltzer, S.M. et al. <em>XCOM: Photon Cross Sections Database.</em> NIST Standard Reference Database 8. National Institute of Standards and Technology, 2010. <a href="https://www.nist.gov/pml/xcom-photon-cross-sections-database" target="_blank" rel="noopener">nist.gov/pml/xcom</a></li>
+        <li>[2] Hubbell, J.H. &amp; Seltzer, S.M. <em>Tables of X-Ray Mass Attenuation Coefficients and Mass Energy-Absorption Coefficients.</em> NIST Standard Reference Database 126, 1996.</li>
+        <li>[3] Turner, J.E. <em>Atoms, Radiation, and Radiation Protection.</em> 3rd ed. Wiley-VCH, 2007. — Beer-Lambert law derivation and attenuation physics.</li>
+        <li>[4] Metropolis, N. &amp; Ulam, S. <em>The Monte Carlo Method.</em> Journal of the American Statistical Association, 44(247):335–341, 1949. — Foundational Monte Carlo reference.</li>
+        <li>[5] Shultis, J.K. &amp; Faw, R.E. <em>Radiation Shielding.</em> American Nuclear Society, 2000. — Geometry corrections, angular incidence, sandwich barriers.</li>
+        <li>[6] <em>Tbilisi Metro — Line 1 Construction Documentation.</em> Tbilisi City Hall Archive / Tbilisi Transport Company, 1966–1979. — Station depths and construction specifications.</li>
+        <li>[7] IAEA Safety Reports Series No. 47. <em>Radiation Protection and Safety in Industrial Radiography.</em> International Atomic Energy Agency, Vienna, 2011.</li>
+      </ul>
+    </div>
+
+    <hr class="footer-divider">
+    <div class="footer-meta">
+      Physics Conference Presentation &nbsp;·&nbsp; Monte Carlo Radiation Simulation &nbsp;·&nbsp;
+      N = 100,000 particles &nbsp;·&nbsp; 1.25 MeV γ-radiation (Co-60) &nbsp;·&nbsp; Tbilisi, Georgia
+    </div>
+
+  </div>
 </footer>
 
 <script>
