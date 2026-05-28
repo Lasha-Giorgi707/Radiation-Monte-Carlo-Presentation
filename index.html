@@ -900,6 +900,14 @@ survival = (np.<span class="fn">sum</span>(particles) / <span class="num">100000
           </div>
         </div>
 
+        <div class="geiger-control-row" style="margin-top:8px;">
+          <div class="geiger-control-label">Sound</div>
+          <div class="geiger-toggle">
+            <button class="geiger-btn active on" id="geigerSndOn"  onclick="geigerSetMute(false)">On</button>
+            <button class="geiger-btn" id="geigerSndOff" onclick="geigerSetMute(true)">Mute</button>
+          </div>
+        </div>
+
         <div style="margin-top:24px; border-top:1px solid rgba(248,245,239,0.08); padding-top:20px;">
           <div class="geiger-control-label" style="margin-bottom:12px;">Physics Notes</div>
           <p id="geigerNote" style="font-size:13px;line-height:1.65;color:rgba(248,245,239,0.55);font-family:'IBM Plex Mono',monospace;"></p>
@@ -1323,6 +1331,14 @@ const labelPlugin = {
   let totalCounts = 0;
   let smoothCpm = BACKGROUND_CPM;
   let audioCtx  = null;
+  let geigerMuted = false;
+  function geigerSetMute(mute){
+    geigerMuted = mute;
+    document.getElementById('geigerSndOn').classList.toggle('active', !mute);
+    document.getElementById('geigerSndOn').classList.toggle('on', !mute);
+    document.getElementById('geigerSndOff').classList.toggle('active', mute);
+    document.getElementById('geigerSndOff').classList.toggle('on', mute);
+  }
 
   function getMu(){
     const mat = document.getElementById('geigerMaterial').value;
@@ -1412,6 +1428,7 @@ const labelPlugin = {
 
   // Audio click via Web Audio API
   function playClick(){
+    if(geigerMuted) return;
     if(!audioCtx){ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
     const buf = audioCtx.createBuffer(1,audioCtx.sampleRate*0.003,audioCtx.sampleRate);
     const d = buf.getChannelData(0);
